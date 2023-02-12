@@ -1,4 +1,5 @@
 export const clip = (x, m, M) => min(max(x, m), M);
+export const each = (a, f) => a && a.map ? a.map(f) : f(a, 0);
 export const map = (a, f) => [].concat(a || []).map(f);
 export const up = Object.assign;
 

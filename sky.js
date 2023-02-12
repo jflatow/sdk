@@ -3,6 +3,7 @@
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
 const clip = (x, m, M)=>min(max(x, m), M);
+const each = (a, f)=>a && a.map ? a.map(f) : f(a, 0);
 const map = (a, f)=>[].concat(a || []).map(f);
 const up = Object.assign;
 const min = Math.min, max = Math.max;
@@ -1020,6 +1021,7 @@ class RGB {
     }
 }
 export { clip as clip };
+export { each as each };
 export { map as map };
 export { up as up };
 export { min as min, max as max };
