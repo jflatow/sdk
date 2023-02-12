@@ -67,12 +67,12 @@ const P = up(function path(cmd, ...args) {
             y
         ]) + P('H', x + w) + P('V', y + h) + P('H', x) + 'Z';
     },
-    border: (box1, t, r, b, l, open = P.M)=>{
+    border: (box, t, r, b, l, open = P.M)=>{
         t = dfn(t, 0);
         r = dfn(r, t);
         b = dfn(b, t);
         l = dfn(l, r);
-        const { x , y , w , h  } = box1;
+        const { x , y , w , h  } = box;
         const ix = x + l, iy = y + t, iw = w - l - r, ih = h - t - b;
         return P.line(x, y, x + w, y, open) + P('v', h) + P('h', -w) + P('v', -h) + P.line(ix, iy, ix, iy + ih) + P('h', iw) + P('v', -ih) + P('h', -iw);
     },
@@ -504,34 +504,34 @@ class Elem {
             class: 'text'
         }).txt(text);
     }
-    svgX(box1, u) {
+    svgX(box, u) {
         return this.svg({
-            viewBox: box1
-        }).embox(box1, u);
+            viewBox: box
+        }).embox(box, u);
     }
-    iconX(box1, href, u) {
-        const { x , y , w , h  } = box1 || this.bbox();
+    iconX(box, href, u) {
+        const { x , y , w , h  } = box || this.bbox();
         return this.icon(href, w, h, u).place(x, y, u);
     }
-    imageX(box1, href, u) {
-        const { x , y , w , h  } = box1 || this.bbox();
+    imageX(box, href, u) {
+        const { x , y , w , h  } = box || this.bbox();
         return this.image(x, y, w, h, href, u);
     }
-    circleX(box1, p, big, u) {
+    circleX(box, p, big, u) {
         const o = big ? max : min;
-        const { midX , midY , w , h  } = box1 || this.bbox();
+        const { midX , midY , w , h  } = box || this.bbox();
         return this.circle(midX, midY, dfn(p, 1) * o(w, h) / 2, u);
     }
-    ellipseX(box1, px, py, u) {
-        const { midX , midY , w , h  } = box1 || this.bbox();
+    ellipseX(box, px, py, u) {
+        const { midX , midY , w , h  } = box || this.bbox();
         return this.ellipse(midX, midY, dfn(px, 1) * w / 2, dfn(py, 1) * h / 2, u);
     }
-    rectX(box1, u) {
-        const { x , y , w , h  } = box1 || this.bbox();
+    rectX(box, u) {
+        const { x , y , w , h  } = box || this.bbox();
         return this.rect(x, y, w, h, u);
     }
-    textX(box1, text, ax, ay, u) {
-        return this.text(text).align(box1 || this.bbox(), ax, ay, u).anchor(ax, ay);
+    textX(box, text, ax, ay, u) {
+        return this.text(text).align(box || this.bbox(), ax, ay, u).anchor(ax, ay);
     }
     flex(ps, hzn, u) {
         return (ps || []).reduce((r, p)=>{
@@ -558,8 +558,8 @@ class Elem {
         }).flex(ps, false, u);
     }
     bbox(fixed) {
-        const box1 = new Box(this.node.getBoundingClientRect());
-        return fixed ? box1 : box1.shift(window.pageXOffset, window.pageYOffset);
+        const box = new Box(this.node.getBoundingClientRect());
+        return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset);
     }
     wh(w, h, u) {
         return this.style(Q({
@@ -592,12 +592,12 @@ class Elem {
     cover(x, y, w, h, u) {
         return this.parent().xywh.call(this, x, y, w, h, u);
     }
-    align(box1, ax, ay, u) {
-        const { x , y  } = new Box().align(box1, ax, ay);
+    align(box, ax, ay, u) {
+        const { x , y  } = new Box().align(box, ax, ay);
         return this.place(x, y, u);
     }
-    embox(box1, u) {
-        const { x , y , w , h  } = box1;
+    embox(box, u) {
+        const { x , y , w , h  } = box;
         return this.cover(x, y, w, h, u);
     }
     anchor(i, j) {
@@ -643,7 +643,7 @@ class Elem {
         val = val || this.node.style.transform || '';
         let m, p = /(\w+)\(([^\)]*)\)/g, tx = {};
         while(m = p.exec(val)){
-            var k = m[1], v = m[2].split(',');
+            const k = m[1], v = m[2].split(',');
             tx[k] = Q.strip(k, v, u);
         }
         return tx;
@@ -740,7 +740,7 @@ class Elem {
     }
     options(desc) {
         if (desc instanceof Array) this.map(desc, 'option');
-        else if (desc instanceof Object) for(var k in desc)this.child('optgroup', {
+        else if (desc instanceof Object) for(let k in desc)this.child('optgroup', {
             label: k
         }).map(desc[k], 'option');
         return this;
@@ -849,8 +849,8 @@ class SVGElem extends Elem {
     symbol(attrs, props) {
         return this.child('symbol', attrs, props);
     }
-    border(t, r, b, l, box1) {
-        return this.path(P.border(box1 || this.bbox(), t, r, b, l));
+    border(t, r, b, l, box) {
+        return this.path(P.border(box || this.bbox(), t, r, b, l));
     }
     anchor(i, j) {
         const a = i < 0 ? 'start' : i > 0 ? 'end' : 'middle';
@@ -947,6 +947,237 @@ class SVGElem extends Elem {
         return tx;
     }
 }
+function box(x, y, w, h) {
+    return new Box({
+        x: x,
+        y: y,
+        w: w,
+        h: h
+    });
+}
+class Box {
+    constructor(d, e){
+        this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0);
+        this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0);
+        this.w = dfn(dfn(d.w, d.width), e ? Inf : 0);
+        this.h = dfn(dfn(d.h, d.height), e ? Inf : 0);
+    }
+    get width() {
+        return this.w;
+    }
+    get height() {
+        return this.h;
+    }
+    get left() {
+        return this.x;
+    }
+    get top() {
+        return this.y;
+    }
+    get midX() {
+        return add(this.x, this.w / 2);
+    }
+    get midY() {
+        return add(this.y, this.h / 2);
+    }
+    get right() {
+        return add(this.x, this.w);
+    }
+    get bottom() {
+        return add(this.y, this.h);
+    }
+    grid(fun, acc, opts) {
+        const o = up({
+            rows: 1,
+            cols: 1
+        }, opts);
+        const r = o.rows, c = o.cols;
+        const x = this.x, y = this.y, w = this.w / c, h = this.h / r;
+        const z = new Box({
+            x: x,
+            y: y,
+            w: w,
+            h: h
+        });
+        for(let i = 0, n = 0; i < r; i++)for(let j = 0; j < c; j++, n++)acc = fun.call(this, acc, z.shift(w * j, h * i), i, j, n, z);
+        return acc;
+    }
+    join(boxs) {
+        const bnds = [].concat(boxs).reduce(function(a, b) {
+            return {
+                x: min(a.x, b.x),
+                y: min(a.y, b.y),
+                right: max(a.right, b.right),
+                bottom: max(a.bottom, b.bottom)
+            };
+        }, this);
+        return new Box({
+            x: bnds.x,
+            y: bnds.y,
+            w: bnds.right - bnds.x,
+            h: bnds.bottom - bnds.y
+        });
+    }
+    tile(fun, acc, opts) {
+        return this.grid(fun, acc, this.shape(opts && opts.unit));
+    }
+    shape(box) {
+        const u = box || this;
+        return {
+            rows: this.h / u.h,
+            cols: this.w / u.w
+        };
+    }
+    stack(fun, acc, opts) {
+        return this.times(opts).grid(fun, acc, opts);
+    }
+    times(shape) {
+        const s = up({
+            rows: 1,
+            cols: 1
+        }, shape);
+        return this.copy({
+            w: s.cols * this.w,
+            h: s.rows * this.h
+        });
+    }
+    over(shape) {
+        const s = up({
+            rows: 1,
+            cols: 1
+        }, shape);
+        return this.copy({
+            w: this.w / s.cols,
+            h: this.h / s.rows
+        });
+    }
+    split(opts) {
+        return this.grid(function(acc, box) {
+            return acc.push(box), acc;
+        }, [], opts);
+    }
+    align(box, ax, ay) {
+        const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;
+        const x = box.midX + nx * box.w - ox * this.w;
+        const y = box.midY + ny * box.h - oy * this.h;
+        return this.copy({
+            x: x,
+            y: y
+        });
+    }
+    center(cx, cy) {
+        return this.copy({
+            x: (cx || 0) - this.w / 2,
+            y: (cy || 0) - this.h / 2
+        });
+    }
+    xy(x, y) {
+        return this.copy({
+            x: x || 0,
+            y: y || 0
+        });
+    }
+    scale(a, b) {
+        const w = a * this.w, h = dfn(b, a) * this.h;
+        return new Box({
+            x: this.midX - w / 2,
+            y: this.midY - h / 2,
+            w: w,
+            h: h
+        });
+    }
+    shift(dx, dy) {
+        return this.copy({
+            x: this.x + (dx || 0),
+            y: this.y + (dy || 0)
+        });
+    }
+    square(big) {
+        const o = big ? max : min, d = o(this.w, this.h);
+        return this.copy({
+            w: d,
+            h: d
+        });
+    }
+    slice(ps, hzn) {
+        const d = hzn ? this.w : this.h;
+        ps = [].concat(ps);
+        const f = 1 - ps.reduce(function(s, p) {
+            return isFinite(p) ? s + p : s;
+        }, 0) / d;
+        return this.part(ps.map(function(p) {
+            const pct = typeof p == 'string' && p[p.length - 1] == '%';
+            return pct ? f * parseFloat(p.slice(0, -1)) / 100 : p / d;
+        }), hzn);
+    }
+    part(ps, hzn) {
+        const b = this, ko = hzn ? 'x' : 'y', kd = hzn ? 'w' : 'h';
+        let o = b[ko], u = {}, s = 0;
+        ps = [].concat(ps, undefined);
+        return ps.map(function(p) {
+            u[ko] = o += u[kd] || 0;
+            u[kd] = dfn(p, 1 - s) * b[kd];
+            s += p;
+            return b.copy(u);
+        });
+    }
+    pad(t, r, b, l) {
+        return this.trim(-t, -r, -b, -l);
+    }
+    trim(t, r, b, l) {
+        t = dfn(t, 0), r = dfn(r, t), b = dfn(b, t), l = dfn(l, r);
+        return new Box({
+            x: this.x + l,
+            y: this.y + t,
+            w: this.w - r - l,
+            h: this.h - t - b
+        });
+    }
+    copy(o_) {
+        const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
+        const { x , y , w , h  } = this;
+        return new Box({
+            x: dfn(o.x, x),
+            y: dfn(o.y, y),
+            w: dfn(ow, w),
+            h: dfn(oh, h)
+        });
+    }
+    equals(o_) {
+        const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
+        const { x , y , w , h  } = this;
+        return x == dfn(o.x, 0) && y == dfn(o.y, 0) && w == dfn(ow, 0) && h == dfn(oh, 0);
+    }
+    toString() {
+        const { x , y , w , h  } = this;
+        return x + ',' + y + ',' + w + ',' + h;
+    }
+    static solve(opts) {
+        const o = up({}, opts);
+        const b = o.bbox, s = o.shape, u = o.unit;
+        if (b && s) return up(o, {
+            shape: up({
+                rows: 1,
+                cols: 1
+            }, s),
+            unit: b.over(s)
+        });
+        if (u && s) return up(o, {
+            shape: up({
+                rows: 1,
+                cols: 1
+            }, s),
+            bbox: u.times(s)
+        });
+        if (b && u) return up(o, {
+            shape: b.shape(u),
+            unit: u.copy({
+                x: b.x,
+                y: b.y
+            })
+        });
+    }
+}
 function rgb(r, g, b, a) {
     return new RGB({
         r,
@@ -1035,5 +1266,7 @@ export { svg as svg };
 export { wrap as wrap };
 export { Elem as Elem };
 export { SVGElem as SVGElem };
+export { box as box };
+export { Box as Box };
 export { rgb as rgb };
 export { RGB as RGB };
