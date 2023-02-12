@@ -2,12 +2,43 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
+const add = (p, d)=>isFinite(d) ? p + d : d;
+const dfn = (x, d)=>isNaN(x) ? d : x;
+const fnt = (x, d)=>isFinite(x) ? x : d;
+const get = (a, k, d)=>a[k] ?? d;
+const set = (a, k, v)=>(a[k] = v, a);
+const pre = (a, k, d)=>a[k] = get(a, k, d);
+const pop = (a, k, d)=>{
+    const v = get(a, k, d);
+    delete a[k];
+    return v;
+};
 const clip = (x, m, M)=>min(max(x, m), M);
 const each = (a, f)=>a && a.map ? a.map(f) : f(a, 0);
 const map = (a, f)=>[].concat(a || []).map(f);
 const up = Object.assign;
-const min = Math.min, max = Math.max;
 const randInt = (m, M)=>Math.round((M - m) * Math.random()) + m;
+const trig = {
+    rad: function(a) {
+        return Math.PI / 180 * a;
+    },
+    sin: function(a) {
+        return Math.sin(trig.rad(a));
+    },
+    cos: function(a) {
+        return Math.cos(trig.rad(a));
+    },
+    cut: function(x) {
+        return util.clip(x, -359.999, 359.999);
+    },
+    polar: function(r, a) {
+        return [
+            r * trig.cos(a),
+            r * trig.sin(a)
+        ];
+    }
+};
 const Q = up(function units(o, u) {
     const t = {};
     for(const k in o)t[k] = Q.unify(k, o[k], u);
@@ -118,7 +149,7 @@ const P = up(function path(cmd, ...args) {
         ]) + P('L', cx, y + h) + P('L', x + b, y) + 'Z';
     },
     arc: (cx, cy, rx, ry, len, off, open = P.M)=>{
-        len = cut(dfn(len, 360));
+        len = trig.cut(dfn(len, 360));
         off = off || 0;
         const ix = cx + rx * cos(off), iy = cy + ry * sin(off);
         const fx = cx + rx * cos(off + len), fy = cy + ry * sin(off + len);
@@ -132,7 +163,7 @@ const P = up(function path(cmd, ...args) {
         return P.arc(cx, cy, rx, ry, 360, 0, open);
     },
     arch: (cx, cy, rx, ry, t, len, off, open = P.M)=>{
-        len = cut(dfn(len, 360));
+        len = trig.cut(dfn(len, 360));
         off = off || 0;
         t = dfn(t, 1);
         return P.arc(cx, cy, rx, ry, len, off, open) + P.arc(cx, cy, rx + t, ry + t, -len, off + len, P.L) + 'Z';
@@ -1251,12 +1282,20 @@ class RGB {
         });
     }
 }
+export { abs as abs, min as min, max as max, Rt2 as Rt2, Inf as Inf };
+export { add as add };
+export { dfn as dfn };
+export { fnt as fnt };
+export { get as get };
+export { set as set };
+export { pre as pre };
+export { pop as pop };
 export { clip as clip };
 export { each as each };
 export { map as map };
 export { up as up };
-export { min as min, max as max };
 export { randInt as randInt };
+export { trig as trig };
 export { Q as Q };
 export { P as P };
 export { SVGTransform as SVGTransform };

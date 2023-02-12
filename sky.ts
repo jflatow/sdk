@@ -1,10 +1,25 @@
+export const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
+export const add = (p, d) => isFinite(d) ? p + d : d;
+export const dfn = (x, d) => isNaN(x) ? d : x;
+export const fnt = (x, d) => isFinite(x) ? x : d;
+export const get = (a, k, d) => a[k] ?? d;
+export const set = (a, k, v) => (a[k] = v, a)
+export const pre = (a, k, d) => (a[k] = get(a, k, d))
+export const pop = (a, k, d) => { const v = get(a, k, d); delete a[k]; return v }
 export const clip = (x, m, M) => min(max(x, m), M);
 export const each = (a, f) => a && a.map ? a.map(f) : f(a, 0);
 export const map = (a, f) => [].concat(a || []).map(f);
 export const up = Object.assign;
 
-export const min = Math.min, max = Math.max;
 export const randInt = (m, M) => Math.round((M - m) * Math.random()) + m;
+
+export const trig = {
+  rad: function (a) { return Math.PI / 180 * a },
+  sin: function (a) { return Math.sin(trig.rad(a)) },
+  cos: function (a) { return Math.cos(trig.rad(a)) },
+  cut: function (x) { return util.clip(x, -359.999, 359.999) },
+  polar: function (r, a) { return [r * trig.cos(a), r * trig.sin(a)] }
+}
 
 export const Q = up(function units(o, u) {
     const t = {}
@@ -100,7 +115,7 @@ export const P: any = up(function path(cmd, ...args) { return cmd + args }, {
     },
 
     arc: (cx, cy, rx, ry, len, off, open = P.M) => {
-      len = cut(dfn(len, 360))
+      len = trig.cut(dfn(len, 360))
       off = off || 0;
       const ix = cx + rx * cos(off), iy = cy + ry * sin(off)
       const fx = cx + rx * cos(off + len), fy = cy + ry * sin(off + len)
@@ -118,7 +133,7 @@ export const P: any = up(function path(cmd, ...args) { return cmd + args }, {
     },
 
     arch: (cx, cy, rx, ry, t, len, off, open = P.M) => {
-      len = cut(dfn(len, 360))
+      len = trig.cut(dfn(len, 360))
       off = off || 0;
       t = dfn(t, 1)
       return (P.arc(cx, cy, rx, ry, len, off, open) +
