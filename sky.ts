@@ -642,7 +642,7 @@ export class Elem {
     return this.transform(x)
   }
 
-  transform(desc, u) {
+  transform(desc?, u?) {
     let xform = []
     for (let k in desc)
       xform.push(k + '(' + Q.unify(k, [].concat(desc[k]), u).join(',') + ')')
@@ -650,7 +650,7 @@ export class Elem {
     return this.style({transform: xform})
   }
 
-  transformation(val, u) {
+  transformation(val?, u?): any {
     val = val || this.node.style.transform || '';
     let m, p = /(\w+)\(([^\)]*)\)/g, tx = {}
     while (m = p.exec(val)) {
