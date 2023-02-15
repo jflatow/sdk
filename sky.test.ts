@@ -3,7 +3,7 @@ import * as Sky from './sky.ts';
 import { assert, assertEquals, assertRejects } from 'https://deno.land/std/testing/asserts.ts';
 
 Deno.test('add', async () => {
-  assertEquals(Sky.add(1), undefined);
+  assertEquals(Sky.add(1, undefined), undefined);
   assertEquals(Sky.add(1, Infinity), Infinity);
   assertEquals(Sky.add(1, 2), 3);
 });

@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 export const add = (p, d) => isFinite(d) ? p + d : d;
 export const dfn = (x, d) => isNaN(x) ? d : x;
@@ -422,7 +423,7 @@ export class Elem {
     return this;
   }
 
-  on(types, fun, capture) {
+  on(types, fun, capture?: any) {
     const node = this.node;
     types.split(/\s+/).map((type) => {
       node.addEventListener(type, fun, capture)
@@ -954,10 +955,10 @@ export class SVGElem extends Elem {
   }
 }
 
-export function box(x, y, w, h) { return new Box({x: x, y: y, w: w, h: h}) }
+export function box(x?, y?, w?, h?) { return new Box({x: x, y: y, w: w, h: h}) }
 
 export class Box {
-  constructor(d, e) {
+  constructor(d, e?: boolean) {
     this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0)
     this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0)
     this.w = dfn(dfn(d.w, d.width), e ? Inf : 0)

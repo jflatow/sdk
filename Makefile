@@ -3,7 +3,7 @@
 build: sky.js orb.js
 
 %.js: %.ts
-	deno bundle --no-check $^ -- $@
+	deno bundle $^ -- $@
 
 test:
-	deno test --no-check
+	deno test
