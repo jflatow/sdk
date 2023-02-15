@@ -216,7 +216,7 @@ export class Elem {
     const n = this.node, p = n.parentNode;
     const c = [].filter.call(p.childNodes, o => o !== n), C = c.length;
     const t = n.scrollTop, l = n.scrollLeft;
-    p.insertBefore(n, c[clip(k < 0 ? C + k +1 : k, 0, C)])
+    p.insertBefore(n, c[clip(k < 0 ? C + k + 1 : k, 0, C)])
     n.scrollTop = t; n.scrollLeft = l;
     return this;
   }
