@@ -7,6 +7,8 @@ export const get = (a, k, d) => a[k] ?? d;
 export const set = (a, k, v) => (a[k] = v, a)
 export const pre = (a, k, d) => (a[k] = get(a, k, d))
 export const pop = (a, k, d) => { const v = get(a, k, d); delete a[k]; return v }
+export const pow = (x, a) => sgn(x) * Math.pow(abs(x), a || 2)
+export const sgn = (x) => x < 0 ? -1 : 1;
 export const clip = (x, m, M) => min(max(x, m), M);
 export const each = (a, f) => a && a.map ? a.map(f) : f(a, 0);
 export const map = (a, f) => [].concat(a || []).map(f);
@@ -23,12 +25,13 @@ export const trig = {
   polar: function (r, a) { return [r * trig.cos(a), r * trig.sin(a)] }
 }
 
-export const Q = up(function units(o, u) {
-    const t = {}
-    for (const k in o)
-      t[k] = Q.unify(k, o[k], u)
-    return t;
-  }, {
+export function units(o, u) {
+  const t = {}
+  for (const k in o)
+    t[k] = Q.unify(k, o[k], u)
+  return t;
+}
+export const Q = up(units, {
     defaults: {
       top: 'px',
       left: 'px',
@@ -63,7 +66,8 @@ export const Q = up(function units(o, u) {
     url: (a) => `url(${a})`
   })
 
-export const P: any = up(function path(cmd, ...args) { return cmd + args }, {
+export function path(cmd, ...args) { return cmd + args }
+export const P: any = up(path, {
     M: (xy) => P('M', xy),
     L: (xy) => P('L', xy),
     join: (...args) => args.reduce((d, a) => d + P.apply(null, a), ''),

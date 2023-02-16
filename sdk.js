@@ -14,6 +14,8 @@ const pop = (a, k, d)=>{
     delete a[k];
     return v;
 };
+const pow = (x, a)=>sgn(x) * Math.pow(abs(x), a || 2);
+const sgn = (x)=>x < 0 ? -1 : 1;
 const clip = (x, m, M)=>min(max(x, m), M);
 const each = (a, f)=>a && a.map ? a.map(f) : f(a, 0);
 const map = (a, f)=>[].concat(a || []).map(f);
@@ -40,11 +42,12 @@ const trig = {
         ];
     }
 };
-const Q = up(function units(o, u) {
+function units(o, u) {
     const t = {};
     for(const k in o)t[k] = Q.unify(k, o[k], u);
     return t;
-}, {
+}
+const Q = up(units, {
     defaults: {
         top: 'px',
         left: 'px',
@@ -79,9 +82,10 @@ const Q = up(function units(o, u) {
     calc: (a, o)=>`calc(${[].concat(a).join(' ' + (o || '-') + ' ')})`,
     url: (a)=>`url(${a})`
 });
-const P = up(function path(cmd, ...args) {
+function path(cmd, ...args) {
     return cmd + args;
-}, {
+}
+const P = up(path, {
     M: (xy)=>P('M', xy),
     L: (xy)=>P('L', xy),
     join: (...args)=>args.reduce((d, a)=>d + P.apply(null, a), ''),
@@ -1296,6 +1300,8 @@ const mod = {
     set: set,
     pre: pre,
     pop: pop,
+    pow: pow,
+    sgn: sgn,
     clip: clip,
     each: each,
     map: map,
@@ -1303,7 +1309,9 @@ const mod = {
     noop: noop,
     randInt: randInt,
     trig: trig,
+    units: units,
     Q: Q,
+    path: path,
     P: P,
     SVGTransform: SVGTransform,
     $: $,
@@ -1317,12 +1325,23 @@ const mod = {
     rgb: rgb,
     RGB: RGB
 };
+function broadcast(desc) {
+    const cast = {};
+    for (const [k, os] of Object.entries(desc))cast[k] = (...args)=>os.forEach((o, i)=>o[k]?.(...args, i));
+    return cast;
+}
 class Orb {
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
             send: jack
         });
+        else if (Array.isArray(jack)) return new this(broadcast({
+            grab: jack,
+            move: jack,
+            send: jack,
+            free: jack
+        }));
         else return new this(jack);
     }
     constructor(impl = {}){
@@ -1374,7 +1393,9 @@ class Events {
         this.pointerup,
         'pointercancel'
     ].join(' ');
+    static scrollwheel = 'mousewheel';
 }
+export { broadcast as broadcast };
 export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
@@ -1387,13 +1408,13 @@ function swipe(elem, jack_, opts_) {
     const doc = elem.doc(), that = opts.glob ? doc : elem;
     let lx, ly, move;
     elem.on(Events.pointerdown, (e)=>{
-        let t = e.touches ? e.touches[0] : e;
+        const t = e.touches ? e.touches[0] : e;
         jack.grab(e);
         lx = t.pageX;
         ly = t.pageY;
         if (opts.prevent) e.preventDefault();
         that.on(Events.pointermove, move = (e)=>{
-            let t = e.touches ? e.touches[0] : e;
+            const t = e.touches ? e.touches[0] : e;
             jack.move([
                 t.pageX - lx,
                 t.pageY - ly,
@@ -1411,6 +1432,26 @@ function swipe(elem, jack_, opts_) {
             if (opts.prevent) e.preventDefault();
         });
     });
+}
+function scroll(elem, jack_, opts_) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        prevent: true
+    }, opts_);
+    let lx, ly;
+    elem.on(Events.scrollwheel, (e)=>{
+        jack.move([
+            e.wheelDeltaX,
+            e.wheelDeltaY,
+            lx,
+            ly
+        ], e);
+        lx = e.pageX;
+        ly = e.pageY;
+        if (opts.stop) e.stopImmediatePropagation();
+        if (opts.prevent) e.preventDefault();
+    });
+    swipe(elem, jack, opts);
 }
 function tap(elem, jack, opts_) {
     const opts = up({
@@ -1448,9 +1489,27 @@ function tap(elem, jack, opts_) {
         stop: opts.stop
     });
 }
+function dbltap(elem, jack_, opts_) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        gap: 250
+    }, opts_);
+    let taps = 0;
+    elem.on(Events.pointerdown, (e)=>{
+        if (taps++) jack.send({
+            fire: e
+        });
+        setTimeout(()=>{
+            taps = 0;
+        }, opts.gap);
+        if (opts.prevent) e.preventDefault();
+    });
+}
 const mod1 = {
+    scroll,
+    swipe,
     tap,
-    swipe
+    dbltap
 };
 class Loop extends Component {
     move(delta, cur, ...rest) {
@@ -1509,7 +1568,21 @@ const mod2 = {
     Loop,
     Wagon
 };
-const mod3 = {};
+class Amp extends Transform {
+    move(delta, ...rest) {
+        const [dx, dy] = delta;
+        const opts = this.opts;
+        const ax = opts.ax ?? 1, ay = opts.ay ?? 1;
+        const kx = opts.kx ?? 1, ky = opts.ky ?? 1;
+        super.move([
+            kx * pow(dx, ax),
+            ky * pow(dy, ay)
+        ], ...rest);
+    }
+}
+const mod3 = {
+    Amp
+};
 export { mod as Sky };
 export { mod1 as Gestures };
 export { mod2 as Components };

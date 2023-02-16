@@ -1,1 +1,1 @@
-// XXX
+export * from './transforms/amp.ts';

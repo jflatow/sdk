@@ -1,6 +1,7 @@
 import { Box, Elem, abs, up } from './sky.ts';
 
 export type Event = any;
+export type Func = (...args: any[]) => any;
 
 export type GrabFn = (...args: any[]) => void;
 export type MoveFn = (delta: number[], ...args: any[]) => void;
@@ -14,8 +15,15 @@ export interface IOrb {
   free?: FreeFn;
 }
 
-export type OrbLike = IOrb | SendFn;
+export type OrbLike = IOrb | SendFn | OrbLike[];
 export type Gesture = (elem: Elem, jack: OrbLike, opts: any) => void;
+
+export function broadcast(desc: { [k: string]: any[] }): { [k: string]: Func } {
+  const cast = {} as { [k: string]: Func };
+  for (const [k, os] of Object.entries(desc))
+    cast[k] = (...args: any[]) => os.forEach((o, i) => o[k]?.(...args, i));
+  return cast;
+}
 
 export class Orb implements IOrb {
   static from(jack: OrbLike): Orb {
@@ -23,6 +31,8 @@ export class Orb implements IOrb {
       return jack;
     else if (typeof(jack) === 'function')
       return new this({ send: jack });
+    else if (Array.isArray(jack))
+      return new this(broadcast({ grab: jack, move: jack, send: jack, free: jack }));
     else
       return new this(jack);
   }
@@ -91,4 +101,6 @@ export class Events {
   static readonly pointerdown = 'pointerdown';
   static readonly pointermove = 'pointermove';
   static readonly pointerexit = [this.pointerup, 'pointercancel'].join(' ')
+
+  static readonly scrollwheel = 'mousewheel';
 }

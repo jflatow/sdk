@@ -1,8 +1,9 @@
 import { Elem, abs, up } from '../sky.ts';
-import { OrbLike, Transform } from '../orb.ts';
+import { Event, Events, Orb, OrbLike, Transform } from '../orb.ts';
 import { swipe } from './swipe.ts';
 
-export type TapOpts = { gap?: number, mx?: number, my?: number, stop?: number };
+export type TapOpts = { gap?: number, mx?: number, my?: number, stop?: boolean };
+export type TapOut = { delta: [dx: number, dy: number] };
 export type TapMsgs = { fire: any };
 
 export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
@@ -27,7 +28,7 @@ export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
 
     free(e: Event, ...rest: any[]) {
       if (open && Dx <= opts.mx && Dy <= opts.my)
-        this.send({ fire: e });
+        this.send({ fire: e }); // XXX interface?
       open = false;
       if (opts.stop)
         e.stopImmediatePropagation();
@@ -35,4 +36,21 @@ export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
     }
   }
   swipe(elem, new TapTransform(jack, opts), { stop: opts.stop });
+}
+
+export type DblTapOpts = { gap?: number, prevent?: boolean };
+export type DblTapOut = { delta: [], args: [e: Event] };
+export type DblTapMsgs = { fire: any };
+
+export function dbltap(elem: Elem, jack_: OrbLike, opts_: DblTapOpts) {
+  const jack = Orb.from(jack_);
+  const opts = up({ gap: 250 }, opts_);
+  let taps = 0;
+  elem.on(Events.pointerdown, (e: Event) => {
+    if (taps++)
+      jack.send({ fire: e }); // XXX interface?
+    setTimeout(() => { taps = 0 }, opts.gap);
+    if (opts.prevent)
+      e.preventDefault()
+  });
 }

@@ -26,11 +26,12 @@ const trig = {
         ];
     }
 };
-const Q = up(function units(o, u) {
+function units(o, u) {
     const t = {};
     for(const k in o)t[k] = Q.unify(k, o[k], u);
     return t;
-}, {
+}
+const Q = up(units, {
     defaults: {
         top: 'px',
         left: 'px',
@@ -65,9 +66,10 @@ const Q = up(function units(o, u) {
     calc: (a, o)=>`calc(${[].concat(a).join(' ' + (o || '-') + ' ')})`,
     url: (a)=>`url(${a})`
 });
-const P = up(function path(cmd, ...args) {
+function path(cmd, ...args) {
     return cmd + args;
-}, {
+}
+const P = up(path, {
     M: (xy)=>P('M', xy),
     L: (xy)=>P('L', xy),
     join: (...args)=>args.reduce((d, a)=>d + P.apply(null, a), ''),
@@ -176,12 +178,23 @@ const P = up(function path(cmd, ...args) {
     }
 });
 window.SVGTransform;
+function broadcast(desc) {
+    const cast = {};
+    for (const [k, os] of Object.entries(desc))cast[k] = (...args)=>os.forEach((o, i)=>o[k]?.(...args, i));
+    return cast;
+}
 class Orb {
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
             send: jack
         });
+        else if (Array.isArray(jack)) return new this(broadcast({
+            grab: jack,
+            move: jack,
+            send: jack,
+            free: jack
+        }));
         else return new this(jack);
     }
     constructor(impl = {}){
@@ -233,7 +246,9 @@ class Events {
         this.pointerup,
         'pointercancel'
     ].join(' ');
+    static scrollwheel = 'mousewheel';
 }
+export { broadcast as broadcast };
 export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };

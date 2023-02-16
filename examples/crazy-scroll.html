@@ -18,7 +18,8 @@
   <body>
     <div id="paper"></div>
     <script type="module">
-      import { Sky, Gestures, Components } from '../sdk.js';
+      import { Sky, Gestures, Transforms, Components } from '../sdk.js';
+      const { Amp } = Transforms;
       const { Loop, Wagon } = Components;
 
       const win = { w: window.innerWidth, h: window.innerHeight }
@@ -93,10 +94,11 @@
           z.move([0, 0])
           p.push(z)
         })(i)
-      g.scroll(g.guide(p)) // XXX up to about here so far
+      Gestures.scroll(g, new Amp(p, { kx: 2 }))
+      //Gestures.scroll(g, new Guide(g, p)) // XXX guides...
 
       const r = g.rect(0, 0, 100, 100).transform({translate: 15})
-      const w = r.wagon({
+      const w = new Wagon(r, {
         grab: function (e) {
           r.attrs({fill: Sky.RGB.random()})
         },
@@ -108,99 +110,96 @@
           r.attrs({fill: 'black'})
         },
       })
-      const sg = r.guide(s, {kx: 2, ky: 2, unit: { width: 200, height: 100 }})
-      g.swipe(sg, { stop: true })
+      // XXX guide
+      //const sg = r.guide(s, {kx: 2, ky: 2, unit: { width: 200, height: 100 }})
+      //g.swipe(sg, { stop: true })
       g.append(svg.circle(10, 10, 10).attrs({ fill: 'green' }))
 
       const d = svg.circle(50, 50, 10)
-      const dw = d.wagon(null, { bbox: { x: 0, y: 0, width: 1000, height: 0 }})
-      const dg = d.guide(dw, { unit: { width: 100 } })
-      d.scroll(dg, { stop: true })
+      const dw = new Wagon(d, { bbox: { x: 0, y: 0, width: 1000, height: 0 }})
+      // XXX guide
+      // const dg = d.guide(dw, { unit: { width: 100 } })
+      // d.scroll(dg, { stop: true })
 
       const e = svg.circle(50, 1000, 10)
       const c = svg.circle(0, 0, 50).transform({translate: 200})
-      c.press(c.spring({
-        move: function (dx, dy, spring) {
-          c.attrs({'fill-opacity': (100 - spring.dx) / 100})
-        }
-      }, { kx: 10, ky: 10 }))
-      const mw = c.wagon({
+      // XXX spring
+      // c.press(c.spring({
+      //   move: function (dx, dy, spring) {
+      //     c.attrs({'fill-opacity': (100 - spring.dx) / 100})
+      //   }
+      // }, { kx: 10, ky: 10 }))
+      const mw = new Wagon(c, {
         move: function (dx, dy, xform) {
           c.attrs({ stroke: 'white', 'stroke-width': Math.pow(Math.abs(mg.jack.dx + mg.jack.dy), .6) })
         }
       })
-      const mg = c.guide(mw, { settle: function () { console.log('settle', arguments) } })
-      const mt = c.tether(mg, { rx: 2, ry: 2, bbox: { x: -100, width: 100 } })
-      mg.hook = mt;
-      c.scroll(mt, { stop: true })
-      c.tap(function () { c.attrs({ fill: Sky.RGB.random() }) })
-      mg.goto(3, 3)
-      M = mg;
+      // XXX
+      // const mg = c.guide(mw, { settle: function () { console.log('settle', arguments) } })
+      // const mt = c.tether(mg, { rx: 2, ry: 2, bbox: { x: -100, width: 100 } })
+      // mg.hook = mt;
+      // c.scroll(mt, { stop: true })
+      // c.tap(function () { c.attrs({ fill: Sky.RGB.random() }) })
+      // mg.goto(3, 3)
+      // M = mg;
 
       const q = svg.g().transform({scale: 2}).rect(300, 100, 20, 20).attrs({ fill: 'blue' }).shift(3, 6)
-      q.swipe(q.orb({
+      Gestures.swipe(q, {
         move: function (dx, dy) {
           const ctm = q.node.getCTM()
           q.attrs({x: q.node.x.animVal.value + dx / ctm.a,
                    y: q.node.y.animVal.value + dy / ctm.d})
         }
-      }), { stop: true })
+      }, { stop: true })
 
       const bgd = svg.rect(100, 100, 100, 40).attrs({ rx:10, ry: 10 })
       const flick = svg.rect(100, 100, 100, 40).attrs({ rx: 10, ry: 10, fill: 'rgba(0, 0, 0, .8)' })
-      flick.swipe(flick.spring(flick.wagon({
-        move: function (dx, dy, cur) {
-          const tx = cur.translate[0];
-          if (tx > 0) {
-            bgd.attrs({ fill: 'green' })
-          } else if (tx < 0) {
-            bgd.attrs({ fill: 'red' })
-          }
-        }
-      }, { bbox: { x: -100, y: 0, width: 200, height: 0 } }), {
-        restore: function (dx, dy, mx, my) {
-          if (mx > 32)      dx /= 16;
-          else if (mx > 16) dx /= 8;
-          else if (mx > 1)  dx /= 4;
-          this.dx -= dx;
-          this.dy -= dy;
-          return this.push(dx, dy, this)
-        },
-        balance: function () {
-          const t = flick.transformation(), tx = t.translate[0];
-          console.log(tx)
-          if (tx >= 100) {
-            bgd.attrs({ 'fill': 'rgba(0, 255, 0, .5)' })
-          } else if (tx <= -100) {
-            bgd.attrs({ 'fill': 'rgba(255, 0, 0, .5)' })
-          } else if (tx) {
-            this.move(-tx, 0)
-          }
-        }
-      }), { stop: true })
+      // XXX spring
+      // flick.swipe(flick.spring(flick.wagon({
+      //   move: function (dx, dy, cur) {
+      //     const tx = cur.translate[0];
+      //     if (tx > 0) {
+      //       bgd.attrs({ fill: 'green' })
+      //     } else if (tx < 0) {
+      //       bgd.attrs({ fill: 'red' })
+      //     }
+      //   }
+      // }, { bbox: { x: -100, y: 0, width: 200, height: 0 } }), {
+      //   restore: function (dx, dy, mx, my) {
+      //     if (mx > 32)      dx /= 16;
+      //     else if (mx > 16) dx /= 8;
+      //     else if (mx > 1)  dx /= 4;
+      //     this.dx -= dx;
+      //     this.dy -= dy;
+      //     return this.push(dx, dy, this)
+      //   },
+      //   balance: function () {
+      //     const t = flick.transformation(), tx = t.translate[0];
+      //     console.log(tx)
+      //     if (tx >= 100) {
+      //       bgd.attrs({ 'fill': 'rgba(0, 255, 0, .5)' })
+      //     } else if (tx <= -100) {
+      //       bgd.attrs({ 'fill': 'rgba(255, 0, 0, .5)' })
+      //     } else if (tx) {
+      //       this.move(-tx, 0)
+      //     }
+      //   }
+      // }), { stop: true })
 
-      dolly = svg.dolly(null, { vbox })
-      console.log('a', vbox)
-      //dolly.setOpts({vbox: {x: dim.x, y: dim.y - dim.h / 2, width: dim.w, height: 2 * dim.h}})
-      //dolly.setOpts({bbox: {x: dim.x, y: dim.y - dim.h / 2, width: dim.w, height: 2 * dim.h}})
-      ds = svg.spring(dolly)
-      svg.swipe(ds)
-      svg.text('origin')
-      svg.text('bbox').xy(dim.x + dim.w, dim.y + dim.h)
+      // XXX dolly
+      // dolly = svg.dolly(null, { vbox })
+      // console.log('a', vbox)
+      // //dolly.setOpts({vbox: {x: dim.x, y: dim.y - dim.h / 2, width: dim.w, height: 2 * dim.h}})
+      // //dolly.setOpts({bbox: {x: dim.x, y: dim.y - dim.h / 2, width: dim.w, height: 2 * dim.h}})
+      // ds = svg.spring(dolly)
+      // svg.swipe(ds)
+      // svg.text('origin')
+      // svg.text('bbox').xy(dim.x + dim.w, dim.y + dim.h)
 
-      svg.once('ok', function () { console.log('bubbled!') })
-      svg.dbltap(function () { console.log(this, arguments) })
+      svg.once('ok', function () { console.log('once!') })
+      Gestures.dbltap(svg, function () { console.log(this, arguments) })
       bgd.fire('ok', null, {bubbles: true})
       bgd.fire('ok', null, {bubbles: true})
-
-      d = false;
-      x = new Sun.Cage;
-      x.on('z', function () { console.log(1) })
-      x.til('z', function () { console.log(2) }, function () { return d })
-      x.on('z', function () { console.log(3) })
-      x.change('z')
-      d = true;
-      x.change('z')
 
       const P = Sky.path;
       svg.circle(200, 100, 3)
@@ -226,11 +225,12 @@
                           return P.corner(b.midX, b.top, xy[0], xy[1], 10, 10, 0)
                         }) + 'z').attrs({ fill: 'blue', stroke: 'blue', 'stroke-width': 3 })
 
-      svg.scroll({
-        move: Sun.throttle(function () {
-          console.log('throttle', arguments)
-        }, 500)
-      })
+      // XXX throttle
+      // svg.scroll({
+      //   move: Sun.throttle(function () {
+      //     console.log('throttle', arguments)
+      //   }, 500)
+      // })
     </script>
   </body>
 </html>

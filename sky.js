@@ -14,6 +14,8 @@ const pop = (a, k, d)=>{
     delete a[k];
     return v;
 };
+const pow = (x, a)=>sgn(x) * Math.pow(abs(x), a || 2);
+const sgn = (x)=>x < 0 ? -1 : 1;
 const clip = (x, m, M)=>min(max(x, m), M);
 const each = (a, f)=>a && a.map ? a.map(f) : f(a, 0);
 const map = (a, f)=>[].concat(a || []).map(f);
@@ -40,11 +42,12 @@ const trig = {
         ];
     }
 };
-const Q = up(function units(o, u) {
+function units(o, u) {
     const t = {};
     for(const k in o)t[k] = Q.unify(k, o[k], u);
     return t;
-}, {
+}
+const Q = up(units, {
     defaults: {
         top: 'px',
         left: 'px',
@@ -79,9 +82,10 @@ const Q = up(function units(o, u) {
     calc: (a, o)=>`calc(${[].concat(a).join(' ' + (o || '-') + ' ')})`,
     url: (a)=>`url(${a})`
 });
-const P = up(function path(cmd, ...args) {
+function path(cmd, ...args) {
     return cmd + args;
-}, {
+}
+const P = up(path, {
     M: (xy)=>P('M', xy),
     L: (xy)=>P('L', xy),
     join: (...args)=>args.reduce((d, a)=>d + P.apply(null, a), ''),
@@ -1291,6 +1295,8 @@ export { get as get };
 export { set as set };
 export { pre as pre };
 export { pop as pop };
+export { pow as pow };
+export { sgn as sgn };
 export { clip as clip };
 export { each as each };
 export { map as map };
@@ -1298,7 +1304,9 @@ export { up as up };
 export { noop as noop };
 export { randInt as randInt };
 export { trig as trig };
+export { units as units };
 export { Q as Q };
+export { path as path };
 export { P as P };
 export { SVGTransform as SVGTransform };
 export { $ as $ };
