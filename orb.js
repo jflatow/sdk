@@ -195,9 +195,10 @@ class Orb {
 class Transform extends Orb {
     jack;
     opts;
-    constructor(jack = {}, opts = {}){
-        this.jack = jack;
-        this.opts = opts;
+    constructor(jack = {}, opts = {}, impl = {}){
+        super(impl);
+        this.jack = Orb.from(jack);
+        this.opts = this.setOpts(opts);
     }
     grab(...args) {
         this.jack.grab(...args);
@@ -211,15 +212,20 @@ class Transform extends Orb {
     free(...args) {
         this.jack.free(...args);
     }
+    setOpts(opts) {
+        return this.opts = opts;
+    }
 }
 class Component extends Transform {
     elem;
+    subs;
     constructor(elem, jack, opts){
         super(jack, opts);
         this.elem = elem;
+        this.subs = [];
     }
 }
-class Gestures {
+class Events {
     static pointerup = 'pointerup';
     static pointerdown = 'pointerdown';
     static pointermove = 'pointermove';
@@ -227,78 +233,8 @@ class Gestures {
         this.pointerup,
         'pointercancel'
     ].join(' ');
-    static tap(elem, jack, opts) {
-        jack = Orb.from(jack);
-        opts = up({
-            gap: 250,
-            mx: 1,
-            my: 1
-        }, opts);
-        let open = false, Dx, Dy;
-        class TapTransform extends Transform {
-            grab(e) {
-                Dx = Dy = 0;
-                open = true;
-                setTimeout(function() {
-                    open = false;
-                }, opts.gap);
-                if (opts.stop) e.stopImmediatePropagation();
-                super.grab.prototype.apply(this, arguments);
-            }
-            move([dx, dy]) {
-                Dx += abs(dx);
-                Dy += abs(dy);
-                super.move.prototype.apply(this, arguments);
-            }
-            free(e) {
-                if (open && Dx <= opts.mx && Dy <= opts.my) this.send({
-                    fire: e
-                });
-                open = false;
-                if (opts.stop) e.stopImmediatePropagation();
-                super.free.prototype.apply(this, arguments);
-            }
-        }
-        return this.swipe(elem, new TapTransform(jack, opts), {
-            stop: opts.stop
-        });
-    }
-    static swipe(elem, jack, opts) {
-        jack = Orb.from(jack);
-        opts = up({
-            glob: true
-        }, opts);
-        const doc = elem.doc(), that = opts.glob ? doc : elem;
-        let lx, ly, move;
-        elem.on(Gestures.pointerdown, function(e) {
-            let t = e.touches ? e.touches[0] : e;
-            jack.grab(e);
-            lx = t.pageX;
-            ly = t.pageY;
-            if (opts.prevent) e.preventDefault();
-            that.on(Gestures.pointermove, move = function(e) {
-                let t = e.touches ? e.touches[0] : e;
-                jack.move([
-                    t.pageX - lx,
-                    t.pageY - ly,
-                    lx,
-                    ly
-                ], e);
-                lx = t.pageX;
-                ly = t.pageY;
-                if (opts.stop) e.stopImmediatePropagation();
-                if (opts.prevent) e.preventDefault();
-            });
-            doc.once(Gestures.pointerexit, function(e) {
-                that.off(Gestures.pointermove, move);
-                jack.free(e);
-                if (opts.prevent) e.preventDefault();
-            });
-        });
-        return this;
-    }
 }
 export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
-export { Gestures as Gestures };
+export { Events as Events };

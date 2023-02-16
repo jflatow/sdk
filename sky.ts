@@ -11,6 +11,7 @@ export const clip = (x, m, M) => min(max(x, m), M);
 export const each = (a, f) => a && a.map ? a.map(f) : f(a, 0);
 export const map = (a, f) => [].concat(a || []).map(f);
 export const up = Object.assign;
+export const noop = () => {};
 
 export const randInt = (m, M) => Math.round((M - m) * Math.random()) + m;
 
@@ -958,7 +959,7 @@ export class SVGElem extends Elem {
 export function box(x?, y?, w?, h?) { return new Box({x: x, y: y, w: w, h: h}) }
 
 export class Box {
-  constructor(d, e?: boolean) {
+  constructor(d = {}, e?: boolean) {
     this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0)
     this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0)
     this.w = dfn(dfn(d.w, d.width), e ? Inf : 0)

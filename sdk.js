@@ -1283,31 +1283,234 @@ class RGB {
         });
     }
 }
-export { abs as abs, min as min, max as max, Rt2 as Rt2, Inf as Inf };
-export { add as add };
-export { dfn as dfn };
-export { fnt as fnt };
-export { get as get };
-export { set as set };
-export { pre as pre };
-export { pop as pop };
-export { clip as clip };
-export { each as each };
-export { map as map };
-export { up as up };
-export { noop as noop };
-export { randInt as randInt };
-export { trig as trig };
-export { Q as Q };
-export { P as P };
-export { SVGTransform as SVGTransform };
-export { $ as $ };
-export { elem as elem };
-export { svg as svg };
-export { wrap as wrap };
-export { Elem as Elem };
-export { SVGElem as SVGElem };
-export { box as box };
-export { Box as Box };
-export { rgb as rgb };
-export { RGB as RGB };
+const mod = {
+    abs: abs,
+    min: min,
+    max: max,
+    Rt2: Rt2,
+    Inf: Inf,
+    add: add,
+    dfn: dfn,
+    fnt: fnt,
+    get: get,
+    set: set,
+    pre: pre,
+    pop: pop,
+    clip: clip,
+    each: each,
+    map: map,
+    up: up,
+    noop: noop,
+    randInt: randInt,
+    trig: trig,
+    Q: Q,
+    P: P,
+    SVGTransform: SVGTransform,
+    $: $,
+    elem: elem,
+    svg: svg,
+    wrap: wrap,
+    Elem: Elem,
+    SVGElem: SVGElem,
+    box: box,
+    Box: Box,
+    rgb: rgb,
+    RGB: RGB
+};
+class Orb {
+    static from(jack) {
+        if (jack instanceof Orb) return jack;
+        else if (typeof jack === 'function') return new this({
+            send: jack
+        });
+        else return new this(jack);
+    }
+    constructor(impl = {}){
+        up(this, impl);
+    }
+    grab(...args) {}
+    move(delta, ...args) {}
+    send(...messages) {}
+    free(...args) {}
+}
+class Transform extends Orb {
+    jack;
+    opts;
+    constructor(jack = {}, opts = {}, impl = {}){
+        super(impl);
+        this.jack = Orb.from(jack);
+        this.opts = this.setOpts(opts);
+    }
+    grab(...args) {
+        this.jack.grab(...args);
+    }
+    move(delta, ...args) {
+        this.jack.move(delta, ...args);
+    }
+    send(...messages) {
+        this.jack.send(...messages);
+    }
+    free(...args) {
+        this.jack.free(...args);
+    }
+    setOpts(opts) {
+        return this.opts = opts;
+    }
+}
+class Component extends Transform {
+    elem;
+    subs;
+    constructor(elem, jack, opts){
+        super(jack, opts);
+        this.elem = elem;
+        this.subs = [];
+    }
+}
+class Events {
+    static pointerup = 'pointerup';
+    static pointerdown = 'pointerdown';
+    static pointermove = 'pointermove';
+    static pointerexit = [
+        this.pointerup,
+        'pointercancel'
+    ].join(' ');
+}
+export { Orb as Orb };
+export { Transform as Transform };
+export { Component as Component };
+export { Events as Events };
+function swipe(elem, jack_, opts_) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        glob: true
+    }, opts_);
+    const doc = elem.doc(), that = opts.glob ? doc : elem;
+    let lx, ly, move;
+    elem.on(Events.pointerdown, (e)=>{
+        let t = e.touches ? e.touches[0] : e;
+        jack.grab(e);
+        lx = t.pageX;
+        ly = t.pageY;
+        if (opts.prevent) e.preventDefault();
+        that.on(Events.pointermove, move = (e)=>{
+            let t = e.touches ? e.touches[0] : e;
+            jack.move([
+                t.pageX - lx,
+                t.pageY - ly,
+                lx,
+                ly
+            ], e);
+            lx = t.pageX;
+            ly = t.pageY;
+            if (opts.stop) e.stopImmediatePropagation();
+            if (opts.prevent) e.preventDefault();
+        });
+        doc.once(Events.pointerexit, (e)=>{
+            that.off(Events.pointermove, move);
+            jack.free(e);
+            if (opts.prevent) e.preventDefault();
+        });
+    });
+}
+function tap(elem, jack, opts_) {
+    const opts = up({
+        gap: 250,
+        mx: 1,
+        my: 1
+    }, opts_);
+    let open = false, Dx, Dy;
+    class TapTransform extends Transform {
+        grab(e, ...rest) {
+            Dx = Dy = 0;
+            open = true;
+            setTimeout(function() {
+                open = false;
+            }, opts.gap);
+            if (opts.stop) e.stopImmediatePropagation();
+            super.grab(e, ...rest);
+        }
+        move(delta, ...rest) {
+            const [dx, dy] = delta;
+            Dx += abs(dx);
+            Dy += abs(dy);
+            super.move(delta, ...rest);
+        }
+        free(e, ...rest) {
+            if (open && Dx <= opts.mx && Dy <= opts.my) this.send({
+                fire: e
+            });
+            open = false;
+            if (opts.stop) e.stopImmediatePropagation();
+            super.free(e, ...rest);
+        }
+    }
+    swipe(elem, new TapTransform(jack, opts), {
+        stop: opts.stop
+    });
+}
+const mod1 = {
+    tap,
+    swipe
+};
+class Loop extends Component {
+    move(delta, cur, ...rest) {
+        const [dx, dy] = delta;
+        const off = cur.translate || [
+            0,
+            0
+        ];
+        const bbox = new Box(this.opts.bbox || {}, true);
+        const wrap = this.opts.wrap || noop;
+        let ox = fnt(off[0], bbox.left);
+        let oy = fnt(off[1], bbox.top);
+        let lx = ox, ly = oy, over = true;
+        while(over){
+            over = false;
+            if (bbox.width) {
+                const wx = lx < bbox.left && 1 || lx > bbox.right && -1;
+                if (wx) {
+                    over = true;
+                    lx += wx * bbox.width;
+                    if (!wrap.call(this, wx, 0, ox, oy)) ox += wx * bbox.width;
+                }
+            }
+            if (bbox.height) {
+                const wy = ly < bbox.top && 1 || ly > bbox.bottom && -1;
+                if (wy) {
+                    over = true;
+                    ly += wy * bbox.height;
+                    if (!wrap.call(this, 0, wy, ox, oy)) oy += wy * bbox.height;
+                }
+            }
+        }
+        cur.translate = [
+            ox,
+            oy
+        ];
+        super.move(delta, cur, ...rest);
+    }
+}
+class Wagon extends Component {
+    move(delta, ...rest) {
+        const [dx, dy] = delta;
+        const cur = this.elem.transformation();
+        const off = cur.translate = cur.translate || [
+            0,
+            0
+        ];
+        const bbox = new Box(this.opts.bbox || {}, true);
+        if (bbox.width) cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right);
+        if (bbox.height) cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom);
+        this.elem.transform(cur);
+        super.move(delta, cur, ...rest);
+    }
+}
+const mod2 = {
+    Loop,
+    Wagon
+};
+const mod3 = {};
+export { mod as Sky };
+export { mod1 as Gestures };
+export { mod2 as Components };
+export { mod3 as Transforms };
