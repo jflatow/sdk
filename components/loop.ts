@@ -1,5 +1,5 @@
-import { Box, fnt, noop } from '../../sky.ts';
-import { Component } from '../../orb.ts';
+import { Box, fnt, noop } from '../sky.ts';
+import { Component } from '../orb.ts';
 
 export type LoopOpts = { bbox: any, wrap: any };
 export type LoopIn = { delta: [dx: number, dy: number], args: [cur: any] };

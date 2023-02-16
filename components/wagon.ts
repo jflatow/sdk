@@ -1,5 +1,5 @@
-import { Box, clip } from '../../sky.ts';
-import { Component } from '../../orb.ts';
+import { Box, clip } from '../sky.ts';
+import { Component } from '../orb.ts';
 
 export type WagonOpts = { bbox: any };
 export type WagonIn = { delta: [dx: number, dy: number] };
