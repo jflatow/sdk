@@ -1,4 +1,5 @@
-.PHONY: build test examples
+.PHONY: build test \
+	examples examples-open examples-serve
 
 build: sdk.js sky.js orb.js
 
@@ -8,7 +9,11 @@ build: sdk.js sky.js orb.js
 test:
 	deno test
 
-examples: PORT = 8011
-examples: build
+examples: examples-open examples-serve
+
+examples-open:
 	open 'http://localhost:$(PORT)/examples/'
+
+examples-serve: PORT = 8011
+examples-serve: build
 	deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts -p $(PORT)

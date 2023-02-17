@@ -19,8 +19,8 @@
     <div id="paper"></div>
     <script type="module">
       import { Sky, Gestures, Transforms, Components } from '../sdk.js';
-      const { Amp } = Transforms;
-      const { Loop, Wagon } = Components;
+      const { Amp, Loop } = Transforms;
+      const { Wagon } = Components;
 
       const win = { w: window.innerWidth, h: window.innerHeight }
       const dim = Sky.box(0, 0, win.w, win.h)
@@ -89,12 +89,13 @@
           const v = q.text(i).xy(25, 25).attrs({ 'text-anchor': 'middle' })
           const z = new Wagon(q.transform({
             translate: [i * 50 + 120, 20]
-          }, l, { bbox: { y: 20, height: 0 } }))
+          }), l, { bbox: { y: 20, height: 0 } })
           Gestures.tap(q, () => { console.log(i) })
           z.move([0, 0])
           p.push(z)
         })(i)
-      Gestures.scroll(g, new Amp(p, { kx: 2 }))
+      Gestures.scroll(g, p)
+      Gestures.swipe(g, new Amp(p, { kx: 10 }))
       //Gestures.scroll(g, new Guide(g, p)) // XXX guides...
 
       const r = g.rect(0, 0, 100, 100).transform({translate: 15})

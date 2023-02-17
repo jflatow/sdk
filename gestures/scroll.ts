@@ -2,9 +2,7 @@ import { Elem, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike } from '../orb.ts';
 import { swipe } from './swipe.ts';
 
-export type ScrollOpts = { prevent?: boolean, stop?: boolean };
-export type ScrollOut = { delta: [dx: number, dy: number, lx: number, ly: number], args: [e: Event] };
-export type ScrollMsgs = void;
+export interface ScrollOpts { prevent?: boolean, stop?: boolean };
 
 export function scroll(elem: Elem, jack_: OrbLike, opts_: ScrollOpts) {
   const jack = Orb.from(jack_);
@@ -19,5 +17,4 @@ export function scroll(elem: Elem, jack_: OrbLike, opts_: ScrollOpts) {
     if (opts.prevent)
       e.preventDefault();
   });
-  swipe(elem, jack, opts);
 }

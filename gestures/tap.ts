@@ -2,9 +2,7 @@ import { Elem, abs, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike, Transform } from '../orb.ts';
 import { swipe } from './swipe.ts';
 
-export type TapOpts = { gap?: number, mx?: number, my?: number, stop?: boolean };
-export type TapOut = { delta: [dx: number, dy: number] };
-export type TapMsgs = { fire: any };
+export interface TapOpts { gap?: number, mx?: number, my?: number, stop?: boolean };
 
 export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
   const opts = up({ gap: 250, mx: 1, my: 1 }, opts_);
@@ -38,9 +36,7 @@ export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
   swipe(elem, new TapTransform(jack, opts), { stop: opts.stop });
 }
 
-export type DblTapOpts = { gap?: number, prevent?: boolean };
-export type DblTapOut = { delta: [], args: [e: Event] };
-export type DblTapMsgs = { fire: any };
+export interface DblTapOpts { gap?: number, prevent?: boolean };
 
 export function dbltap(elem: Elem, jack_: OrbLike, opts_: DblTapOpts) {
   const jack = Orb.from(jack_);

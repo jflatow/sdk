@@ -219,6 +219,7 @@ class Elem {
     static get xmlns() {
         return "http://www.w3.org/1999/xhtml";
     }
+    node;
     constructor(elem, attrs, props, doc){
         this.node = elem && elem.nodeType ? elem : (doc || document).createElementNS(this.constructor.xmlns, elem);
         this.attrs(attrs);
@@ -1400,6 +1401,25 @@ export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
 export { Events as Events };
+function scroll(elem, jack_, opts_) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        prevent: true
+    }, opts_);
+    let lx, ly;
+    elem.on(Events.scrollwheel, (e)=>{
+        jack.move([
+            e.wheelDeltaX,
+            e.wheelDeltaY,
+            lx,
+            ly
+        ], e);
+        lx = e.pageX;
+        ly = e.pageY;
+        if (opts.stop) e.stopImmediatePropagation();
+        if (opts.prevent) e.preventDefault();
+    });
+}
 function swipe(elem, jack_, opts_) {
     const jack = Orb.from(jack_);
     const opts = up({
@@ -1432,26 +1452,6 @@ function swipe(elem, jack_, opts_) {
             if (opts.prevent) e.preventDefault();
         });
     });
-}
-function scroll(elem, jack_, opts_) {
-    const jack = Orb.from(jack_);
-    const opts = up({
-        prevent: true
-    }, opts_);
-    let lx, ly;
-    elem.on(Events.scrollwheel, (e)=>{
-        jack.move([
-            e.wheelDeltaX,
-            e.wheelDeltaY,
-            lx,
-            ly
-        ], e);
-        lx = e.pageX;
-        ly = e.pageY;
-        if (opts.stop) e.stopImmediatePropagation();
-        if (opts.prevent) e.preventDefault();
-    });
-    swipe(elem, jack, opts);
 }
 function tap(elem, jack, opts_) {
     const opts = up({
@@ -1511,7 +1511,37 @@ const mod1 = {
     tap,
     dbltap
 };
-class Loop extends Component {
+class Wagon extends Component {
+    move(delta, ...rest) {
+        const [dx, dy] = delta;
+        const cur = this.elem.transformation();
+        const off = cur.translate = cur.translate || [
+            0,
+            0
+        ];
+        const bbox = new Box(this.opts.bbox || {}, true);
+        if (bbox.width) cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right);
+        if (bbox.height) cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom);
+        super.move(delta, cur, ...rest);
+        this.elem.transform(cur);
+    }
+}
+const mod2 = {
+    Wagon
+};
+class Amp extends Transform {
+    move(delta, ...rest) {
+        const [dx, dy] = delta;
+        const opts = this.opts;
+        const ax = opts.ax ?? 1, ay = opts.ay ?? 1;
+        const kx = opts.kx ?? 1, ky = opts.ky ?? 1;
+        super.move([
+            kx * pow(dx, ax),
+            ky * pow(dy, ay)
+        ], ...rest);
+    }
+}
+class Loop extends Transform {
     move(delta, cur, ...rest) {
         const [dx, dy] = delta;
         const off = cur.translate || [
@@ -1549,39 +1579,9 @@ class Loop extends Component {
         super.move(delta, cur, ...rest);
     }
 }
-class Wagon extends Component {
-    move(delta, ...rest) {
-        const [dx, dy] = delta;
-        const cur = this.elem.transformation();
-        const off = cur.translate = cur.translate || [
-            0,
-            0
-        ];
-        const bbox = new Box(this.opts.bbox || {}, true);
-        if (bbox.width) cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right);
-        if (bbox.height) cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom);
-        this.elem.transform(cur);
-        super.move(delta, cur, ...rest);
-    }
-}
-const mod2 = {
-    Loop,
-    Wagon
-};
-class Amp extends Transform {
-    move(delta, ...rest) {
-        const [dx, dy] = delta;
-        const opts = this.opts;
-        const ax = opts.ax ?? 1, ay = opts.ay ?? 1;
-        const kx = opts.kx ?? 1, ky = opts.ky ?? 1;
-        super.move([
-            kx * pow(dx, ax),
-            ky * pow(dy, ay)
-        ], ...rest);
-    }
-}
 const mod3 = {
-    Amp
+    Amp,
+    Loop
 };
 export { mod as Sky };
 export { mod1 as Gestures };

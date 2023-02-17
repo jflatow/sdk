@@ -2,8 +2,6 @@ import { Elem, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike } from '../orb.ts';
 
 export type SwipeOpts = { prevent?: boolean, stop?: boolean };
-export type SwipeOut = { delta: [dx: number, dy: number, lx: number, ly: number], args: [e: Event] };
-export type SwipeMsgs = void;
 
 export function swipe(elem: Elem, jack_: OrbLike, opts_: SwipeOpts) {
   const jack = Orb.from(jack_);

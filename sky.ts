@@ -168,6 +168,14 @@ export const P: any = up(path, {
   })
 
 export const SVGTransform = window.SVGTransform;
+export interface Transformation {
+  matrix?: number[];
+  translate?: number[];
+  scale?: number[];
+  rotate?: number[];
+  skewX?: number;
+  skewY?: number;
+}
 
 export function $(q) { return new Elem(document).$(q) }
 export function elem(...args) { return new Elem(...args) }
@@ -185,7 +193,9 @@ export class Elem {
   static get xml() { return "http://www.w3.org/XML/1998/namespace" }
   static get xmlns() { return "http://www.w3.org/1999/xhtml" }
 
-  constructor(elem, attrs, props, doc) {
+  node: Node;
+
+  constructor(elem, attrs?, props?, doc) {
     this.node = elem && elem.nodeType ? elem : (doc || document).createElementNS(this.constructor.xmlns, elem)
     this.attrs(attrs)
     this.props(props)
@@ -207,7 +217,7 @@ export class Elem {
     return this;
   }
 
-  child(elem, attrs, props) {
+  child(elem, attrs?, props?) {
     return new this.constructor(elem, attrs, props).addTo(this)
   }
 
@@ -218,7 +228,7 @@ export class Elem {
     return this;
   }
 
-  order(k) {
+  order(k?) {
     const n = this.node, p = n.parentNode;
     const c = [].filter.call(p.childNodes, o => o !== n), C = c.length;
     const t = n.scrollTop, l = n.scrollLeft;
@@ -242,7 +252,7 @@ export class Elem {
     return this.node.ownerDocument ? new this.constructor(this.node.ownerDocument) : this;
   }
 
-  each(sel, fun, acc) {
+  each(sel, fun, acc?) {
     for (let q = this.node.querySelectorAll(sel), i = 0; i < q.length; i++)
       acc = fun(q[i], acc, i, q)
     return acc;
@@ -305,7 +315,7 @@ export class Elem {
     return this.node.getAttributeNS(ns || null, name)
   }
 
-  attrs(attrs, ns) {
+  attrs(attrs?, ns) {
     for (let k in attrs) {
       const v = attrs[k]
       if (v == null)
@@ -316,13 +326,13 @@ export class Elem {
     return this;
   }
 
-  props(props) {
+  props(props?) {
     for (let k in props)
       this.node[k] = props[k]
     return this;
   }
 
-  style(attrs) {
+  style(attrs?) {
     for (let k in attrs)
       this.node.style[k] = attrs[k]
     return this;
@@ -336,7 +346,7 @@ export class Elem {
     return this.attrs({space: space}, this.xml)
   }
 
-  txt(text, order) {
+  txt(text, order?) {
     if (isFinite(order))
       return elem(this.doc().node.createTextNode(text)).addTo(this).order(order), this;
     return this.props({textContent: text})
@@ -464,19 +474,19 @@ export class Elem {
     }, capture)
   }
 
-  a(attrs, props) {
+  a(attrs?, props?) {
     return this.child('a', attrs, props)
   }
 
-  p(attrs, props) {
+  p(attrs?, props?) {
     return this.child('p', attrs, props)
   }
 
-  div(attrs, props) {
+  div(attrs?, props?) {
     return this.child('div', attrs, props)
   }
 
-  span(attrs, props) {
+  span(attrs?, props?) {
     return this.child('span', attrs, props)
   }
 
@@ -496,11 +506,11 @@ export class Elem {
     return this.p().txt(text)
   }
 
-  svg(attrs, props) {
+  svg(attrs?, props?) {
     return svg(attrs, props).addTo(this)
   }
 
-  g(attrs, props) {
+  g(attrs?, props?) {
     return this.div(attrs, props)
   }
 
@@ -655,7 +665,7 @@ export class Elem {
     return this.style({transform: xform})
   }
 
-  transformation(val?, u?): any {
+  transformation(val?, u?): Transformation {
     val = val || this.node.style.transform || '';
     let m, p = /(\w+)\(([^\)]*)\)/g, tx = {}
     while (m = p.exec(val)) {
@@ -728,7 +738,7 @@ export class Elem {
     return json;
   }
 
-  form(attrs, props) {
+  form(attrs?, props?) {
     return this.child('form', attrs, props)
   }
 
@@ -736,7 +746,7 @@ export class Elem {
     return this.child('label').txt(text)
   }
 
-  button(desc, props) {
+  button(desc, props?) {
     desc = up({}, desc)
     const icon = pop(desc, 'icon')
     const label = pop(desc, 'label', '')
@@ -751,14 +761,14 @@ export class Elem {
     return elem.on('click', action.bind(elem))
   }
 
-  input(desc, props) {
+  input(desc, props?) {
     desc = up({}, desc)
     const label = pop(desc, 'label')
     const elem = label ? this.label(label) : this;
     return elem.child('input', desc, props)
   }
 
-  output(desc, props) {
+  output(desc, props?) {
     desc = up({}, desc)
     const label = pop(desc, 'label')
     const elem = label ? this.label(label) : this;
@@ -787,7 +797,7 @@ export class Elem {
     return this;
   }
 
-  select(desc, props) {
+  select(desc, props?) {
     desc = up({}, desc)
     const label = pop(desc, 'label')
     const options = pop(desc, 'options')
@@ -795,7 +805,7 @@ export class Elem {
     return elem.child('select', desc, props).options(options)
   }
 
-  textarea(desc, props) {
+  textarea(desc, props?) {
     desc = up({}, desc)
     const label = pop(desc, 'label')
     const elem = label ? this.label(label) : this;
@@ -811,7 +821,7 @@ export class SVGElem extends Elem {
   static get xmlns() { return "http://www.w3.org/2000/svg" }
   static get xlink() { return "http://www.w3.org/1999/xlink" }
 
-  svg(attrs, props) {
+  svg(attrs?, props?) {
     return this.child('svg', attrs, props)
   }
 
@@ -851,7 +861,7 @@ export class SVGElem extends Elem {
     return this.child('tspan', {}, {textContent: text})
   }
 
-  g(attrs, props) {
+  g(attrs?, props?) {
     return this.child('g', attrs, props)
   }
 
@@ -867,14 +877,14 @@ export class SVGElem extends Elem {
     return this.child('use').href(href)
   }
 
-  mask(attrs, props) {
+  mask(attrs?, props?) {
     return this.child('mask', attrs, props)
   }
 
-  clipPath (attrs, props) {
+  clipPath(attrs?, props?) {
     return this.child('clipPath', attrs, props)
   }
-  symbol(attrs, props) {
+  symbol(attrs?, props?) {
     return this.child('symbol', attrs, props)
   }
 
@@ -938,7 +948,7 @@ export class SVGElem extends Elem {
     return this.attrs({transform: xform.join(' ')})
   }
 
-  transformation(list) {
+  transformation(list?): Transformation {
     const tx = {}
     list = list || this.node.transform.baseVal;
     for (let i = 0; i < list.numberOfItems; i++) {

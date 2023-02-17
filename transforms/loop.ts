@@ -1,13 +1,10 @@
-import { Box, fnt, noop } from '../sky.ts';
-import { Component } from '../orb.ts';
+import { Box, Transformation, fnt, noop } from '../sky.ts';
+import { Transform } from '../orb.ts';
 
-export type LoopOpts = { bbox: any, wrap: any };
-export type LoopIn = { delta: [dx: number, dy: number], args: [cur: any] };
-export type LoopOut = { delta: [dx: number, dy: number], args: [cur: any] };
-export type LoopMsgs = void;
+export interface LoopOpts { bbox?: any, wrap?: any };
 
-export class Loop extends Component<LoopOpts> {
-  move(delta: number[], cur: any, ...rest: any[]) {
+export class Loop extends Transform<LoopOpts> {
+  move(delta: number[], cur: Transformation, ...rest: any[]) {
     const [dx, dy] = delta;
     const off = cur.translate || [0, 0];
     const bbox = new Box(this.opts.bbox || {}, true);

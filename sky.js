@@ -219,6 +219,7 @@ class Elem {
     static get xmlns() {
         return "http://www.w3.org/1999/xhtml";
     }
+    node;
     constructor(elem, attrs, props, doc){
         this.node = elem && elem.nodeType ? elem : (doc || document).createElementNS(this.constructor.xmlns, elem);
         this.attrs(attrs);
