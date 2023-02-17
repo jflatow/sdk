@@ -4,7 +4,7 @@ import { swipe } from './swipe.ts';
 
 export interface ScrollOpts { prevent?: boolean, stop?: boolean };
 
-export function scroll(elem: Elem, jack_: OrbLike, opts_: ScrollOpts) {
+export function scroll(elem: Elem, jack_: OrbLike, opts_: ScrollOpts = {}) {
   const jack = Orb.from(jack_);
   const opts = up({ prevent: true }, opts_);
   let lx: number, ly: number;

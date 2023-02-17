@@ -232,15 +232,20 @@ class Transform extends Orb {
 class Component extends Transform {
     elem;
     subs;
-    constructor(elem, jack, opts){
-        super(jack, opts, {
-            elem
-        });
+    constructor(elem, jack, opts, impl = {
+        elem
+    }){
+        super(jack, opts, impl);
         this.elem = elem;
         this.subs = [];
+        this.init();
     }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
+    }
+    init() {}
+    render() {
+        this.subs?.forEach((c)=>c.render());
     }
 }
 class Events {

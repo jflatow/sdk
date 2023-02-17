@@ -86,19 +86,26 @@ export class Component<Opts> extends Transform<Opts> {
   elem: Elem;
   subs?: Component<any>[];
 
-  constructor(elem: Elem, jack?: Orb, opts?: Opts) {
-    super(jack, opts, { elem });
+  constructor(elem: Elem, jack?: Orb, opts?: Opts, impl = { elem }) {
+    super(jack, opts, impl);
     this.elem = elem;
     this.subs = [];
+    this.init();
   }
 
   static quick<Opts>(elem: Elem, opts?: Opts) {
     return new this(elem, undefined, opts);
   }
 
-  // XXX how to start building out browser tests?
-    //  tests given component classes, will leverage from progs?
-    //  compose sequences of actions/messages
+  init() {
+    // override to add implicit gestures, etc. on construction
+  }
+
+  render() {
+    // override to propagate external state changes
+    //  remember to call super
+    this.subs?.forEach(c => c.render());
+  }
 }
 
 export class Events {

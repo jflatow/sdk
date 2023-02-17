@@ -11,14 +11,19 @@
         width: 100%;
         height: 100%;
       }
+
+      .pressed {
+        color: green;
+      }
     </style>
   </head>
   <body>
     <div id="paper"></div>
     <script type="module">
-      import { Sky, Gestures, Transforms, Components } from '../sdk.js';
+      import { assert } from './assert.js';
+      import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
       const { Amp, Loop } = Transforms;
-      const { Wagon, Text } = Components;
+      const { Button, Text, Wagon } = Components;
 
       const paper = Sky.$('#paper');
       const text1 = new Text(paper.div());
@@ -26,10 +31,38 @@
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
       const text4 = Text.quick(paper.div(), { text: "Hello there" });
 
-      Gestures.press(paper, new Wagon(text1.elem, { grab: console.log, free: console.log }));
+      // XXX not very convenient to construct w/ action if not app
+      const button1 = new Button(paper.div(), null, {
+        app: { do_Button: () => console.log('xxx do') }
+      });
+
+      let grabbed, freed;
+      Gestures.press(text1.elem, new Wagon(text2.elem, {
+        grab: (e) => {
+          grabbed = true;
+          console.log('grab', e)
+        },
+        free: (e) => {
+          freed = true;
+          console.log('free', e)
+        },
+      }));
       Gestures.scroll(paper, new Wagon(text3.elem));
       Gestures.swipe(paper, new Wagon(text4.elem));
       Gestures.tap(paper, new Wagon(paper));
+
+      // XXX how to start building out browser tests?
+      //  tests given component classes, will leverage from progs?
+      //  compose sequences of actions/messages
+      text1.elem.dispatch(new PointerEvent(Events.pointerdown, { pressure: 1 }));
+      setTimeout(() => {
+        text1.elem.dispatch(new PointerEvent(Events.pointerup, { bubbles: true }));
+      }, 3000);
+
+      setTimeout(() => {
+        assert(grabbed, 'not grabbed');
+        assert(freed, 'not freed');
+      }, 3100);
     </script>
   </body>
 </html>

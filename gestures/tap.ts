@@ -3,8 +3,9 @@ import { Event, Events, Orb, OrbLike, Transform } from '../orb.ts';
 import { swipe } from './swipe.ts';
 
 export interface TapOpts { gap?: number, mx?: number, my?: number, stop?: boolean };
+export interface TapSend { fire: Event };
 
-export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
+export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts = {}) {
   const opts = up({ gap: 250, mx: 1, my: 1 }, opts_);
   let open = false, Dx: number, Dy: number;
   class TapTransform extends Transform<TapOpts> {
@@ -26,7 +27,7 @@ export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts) {
 
     free(e: Event, ...rest: any[]) {
       if (open && Dx <= opts.mx && Dy <= opts.my)
-        this.send({ fire: e }); // XXX interface?
+        this.send({ fire: e });
       open = false;
       if (opts.stop)
         e.stopImmediatePropagation();
@@ -44,7 +45,7 @@ export function dbltap(elem: Elem, jack_: OrbLike, opts_: DblTapOpts) {
   let taps = 0;
   elem.on(Events.pointerdown, (e: Event) => {
     if (taps++)
-      jack.send({ fire: e }); // XXX interface?
+      jack.send({ fire: e });
     setTimeout(() => { taps = 0 }, opts.gap);
     if (opts.prevent)
       e.preventDefault()

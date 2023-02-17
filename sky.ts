@@ -433,9 +433,12 @@ export class Elem {
     return map(f ? map(l, [].concat.bind([f])) : l, this.apply.bind(this))
   }
 
+  dispatch(event) {
+    return this.node.dispatchEvent(event), this;
+  }
+
   fire(type, data, opts) {
-    this.node.dispatchEvent(new CustomEvent(type, up({detail: data}, opts)))
-    return this;
+    return this.dispatch(new CustomEvent(type, up({detail: data}, opts)))
   }
 
   on(types, fun, capture?: any) {

@@ -3,7 +3,7 @@ import { Event, Events, Orb, OrbLike } from '../orb.ts';
 
 export type SwipeOpts = { prevent?: boolean, stop?: boolean };
 
-export function swipe(elem: Elem, jack_: OrbLike, opts_: SwipeOpts) {
+export function swipe(elem: Elem, jack_: OrbLike, opts_: SwipeOpts = {}) {
   const jack = Orb.from(jack_);
   const opts = up({ glob: true }, opts_);
   const doc = elem.doc(), that = opts.glob ? doc : elem;

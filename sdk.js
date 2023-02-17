@@ -432,11 +432,13 @@ class Elem {
             f
         ])) : l, this.apply.bind(this));
     }
+    dispatch(event) {
+        return this.node.dispatchEvent(event), this;
+    }
     fire(type, data, opts) {
-        this.node.dispatchEvent(new CustomEvent(type, up({
+        return this.dispatch(new CustomEvent(type, up({
             detail: data
         }, opts)));
-        return this;
     }
     on(types, fun, capture) {
         const node = this.node;
@@ -1380,15 +1382,20 @@ class Transform extends Orb {
 class Component extends Transform {
     elem;
     subs;
-    constructor(elem, jack, opts){
-        super(jack, opts, {
-            elem
-        });
+    constructor(elem, jack, opts, impl = {
+        elem
+    }){
+        super(jack, opts, impl);
         this.elem = elem;
         this.subs = [];
+        this.init();
     }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
+    }
+    init() {}
+    render() {
+        this.subs?.forEach((c)=>c.render());
     }
 }
 class Events {
@@ -1410,7 +1417,7 @@ function press(elem, jack_, opts_) {
     const jack = Orb.from(jack_);
     const opts = up({
         gain: 1,
-        every: 10
+        every: 33
     }, opts_);
     let i;
     return elem.on(Events.pointerdown, (e)=>{
@@ -1427,7 +1434,7 @@ function press(elem, jack_, opts_) {
         });
     });
 }
-function scroll(elem, jack_, opts_) {
+function scroll(elem, jack_, opts_ = {}) {
     const jack = Orb.from(jack_);
     const opts = up({
         prevent: true
@@ -1446,7 +1453,7 @@ function scroll(elem, jack_, opts_) {
         if (opts.prevent) e.preventDefault();
     });
 }
-function swipe(elem, jack_, opts_) {
+function swipe(elem, jack_, opts_ = {}) {
     const jack = Orb.from(jack_);
     const opts = up({
         glob: true
@@ -1479,7 +1486,7 @@ function swipe(elem, jack_, opts_) {
         });
     });
 }
-function tap(elem, jack, opts_) {
+function tap(elem, jack, opts_ = {}) {
     const opts = up({
         gap: 250,
         mx: 1,
@@ -1544,6 +1551,42 @@ class Text extends Component {
         return super.setOpts(opts);
     }
 }
+class Button extends Text {
+    init() {
+        tap(this.elem, ({ fire: e  })=>this.press(e));
+    }
+    render() {
+        const app = this.opts.app ?? {};
+        const act = this.opts.act ?? this.constructor.name;
+        const k = `does_${act}`;
+        const f = app[k];
+        if (f instanceof Function) {
+            const does = f();
+            this.elem.style({
+                display: does ? null : 'none'
+            });
+        }
+        super.render();
+    }
+    async press(e) {
+        const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
+        const act = this.opts.act ?? this.constructor.name;
+        const k = `do_${act}`;
+        const f = app[k];
+        if (f instanceof Function) {
+            this.elem.addClass('pressed');
+            try {
+                await new Promise((ok)=>setTimeout(ok, hold));
+                await f();
+            } catch (err) {
+                console.error(err);
+            }
+            this.elem.removeClass('pressed');
+        } else {
+            console.debug('stray pressed component', this);
+        }
+    }
+}
 class Wagon extends Component {
     move(delta, ...rest) {
         const [dx, dy] = delta;
@@ -1560,6 +1603,7 @@ class Wagon extends Component {
     }
 }
 const mod2 = {
+    Button,
     Text,
     Wagon
 };
