@@ -81,7 +81,8 @@
       for (let i = 0; i < N; i++)
         (function (i) {
           const q = g.g()
-          const l = new Loop(q, {
+          // XXX is it weird to have loop come after wagon actually?
+          const l = new Loop(null, {
             bbox: dim,
             wrap: function (wx) { v.txt(i += wx * N) }
           })

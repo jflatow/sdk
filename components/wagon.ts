@@ -9,9 +9,9 @@ export class Wagon extends Component<WagonOpts> {
     const cur = this.elem.transformation();
     const off = cur.translate = cur.translate || [0, 0];
     const bbox = new Box(this.opts.bbox || {}, true);
-    if (bbox.width)
+    if (bbox.width && dx)
       cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right)
-    if (bbox.height)
+    if (bbox.height && dy)
       cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom)
     super.move(delta, cur, ...rest); // may modify cur
     this.elem.transform(cur);

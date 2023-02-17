@@ -76,6 +76,8 @@ export class Transform<Opts> extends Orb {
   setOpts(opts: Opts): Opts {
     // transition this.opts -> opts
     //  returns whatever we *actually* set
+    // subtypes can simply chain the new opts they handle
+    //  and return super.setOpts(chain(opts)) or chain(super.setOpts(opts))
     return this.opts = opts;
   }
 }
@@ -85,15 +87,18 @@ export class Component<Opts> extends Transform<Opts> {
   subs?: Component<any>[];
 
   constructor(elem: Elem, jack?: Orb, opts?: Opts) {
-    super(jack, opts);
+    super(jack, opts, { elem });
     this.elem = elem;
     this.subs = [];
   }
 
-  // XXX render I suppose belongs here? even though we won't really use it?
-  //  what does it mean exactly?
-  // XXX how to start building out tests?
-  //  tests given component classes, will leverage from progs?
+  static quick<Opts>(elem: Elem, opts?: Opts) {
+    return new this(elem, undefined, opts);
+  }
+
+  // XXX how to start building out browser tests?
+    //  tests given component classes, will leverage from progs?
+    //  compose sequences of actions/messages
 }
 
 export class Events {

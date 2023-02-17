@@ -1381,9 +1381,14 @@ class Component extends Transform {
     elem;
     subs;
     constructor(elem, jack, opts){
-        super(jack, opts);
+        super(jack, opts, {
+            elem
+        });
         this.elem = elem;
         this.subs = [];
+    }
+    static quick(elem, opts) {
+        return new this(elem, undefined, opts);
     }
 }
 class Events {
@@ -1401,6 +1406,27 @@ export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
 export { Events as Events };
+function press(elem, jack_, opts_) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        gain: 1,
+        every: 10
+    }, opts_);
+    let i;
+    return elem.on(Events.pointerdown, (e)=>{
+        jack.grab(e);
+        i = setInterval(()=>jack.move([
+                opts.gain,
+                e.pressure
+            ], e), opts.every);
+        if (opts.prevent) e.preventDefault();
+        elem.doc().once(Events.pointerexit, (e)=>{
+            jack.free(e);
+            clearInterval(i);
+            if (opts.prevent) e.preventDefault();
+        });
+    });
+}
 function scroll(elem, jack_, opts_) {
     const jack = Orb.from(jack_);
     const opts = up({
@@ -1506,11 +1532,18 @@ function dbltap(elem, jack_, opts_) {
     });
 }
 const mod1 = {
+    press,
     scroll,
     swipe,
     tap,
     dbltap
 };
+class Text extends Component {
+    setOpts(opts) {
+        this.elem.txt(opts.text ?? this.constructor.name);
+        return super.setOpts(opts);
+    }
+}
 class Wagon extends Component {
     move(delta, ...rest) {
         const [dx, dy] = delta;
@@ -1520,13 +1553,14 @@ class Wagon extends Component {
             0
         ];
         const bbox = new Box(this.opts.bbox || {}, true);
-        if (bbox.width) cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right);
-        if (bbox.height) cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom);
+        if (bbox.width && dx) cur.translate[0] = clip(off[0] + dx, bbox.left, bbox.right);
+        if (bbox.height && dy) cur.translate[1] = clip(off[1] + dy, bbox.top, bbox.bottom);
         super.move(delta, cur, ...rest);
         this.elem.transform(cur);
     }
 }
 const mod2 = {
+    Text,
     Wagon
 };
 class Amp extends Transform {

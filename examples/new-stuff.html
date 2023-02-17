@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>New Stuff</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <style>
+      * {
+        user-select: none;
+      }
+
+      #paper {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="paper"></div>
+    <script type="module">
+      import { Sky, Gestures, Transforms, Components } from '../sdk.js';
+      const { Amp, Loop } = Transforms;
+      const { Wagon, Text } = Components;
+
+      const paper = Sky.$('#paper');
+      const text1 = new Text(paper.div());
+      const text2 = new Text(paper.div(), null);
+      const text3 = new Text(paper.div(), null, { text: "Hello there" });
+      const text4 = Text.quick(paper.div(), { text: "Hello there" });
+
+      Gestures.press(paper, new Wagon(text1.elem, { grab: console.log, free: console.log }));
+      Gestures.scroll(paper, new Wagon(text3.elem));
+      Gestures.swipe(paper, new Wagon(text4.elem));
+      Gestures.tap(paper, new Wagon(paper));
+    </script>
+  </body>
+</html>

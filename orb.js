@@ -233,9 +233,14 @@ class Component extends Transform {
     elem;
     subs;
     constructor(elem, jack, opts){
-        super(jack, opts);
+        super(jack, opts, {
+            elem
+        });
         this.elem = elem;
         this.subs = [];
+    }
+    static quick(elem, opts) {
+        return new this(elem, undefined, opts);
     }
 }
 class Events {
