@@ -1,19 +1,12 @@
-import { Text, TextOpts } from './text.ts';
-import { Event } from '../orb.ts';
+import { Text } from './text.ts';
+import { Component, Event } from '../orb.ts';
 import { tap } from '../gestures.ts'; // XXX switch to press
 
-// export interface ButtonOpts extends TextOpts { app?: any, act?: string, hold?: number };
 export interface ButtonOpts { app?: any, act?: string, hold?: number };
 
-export type TextButtonOpts = TextOpts & ButtonOpts;
-
-// XXX theres also Reflect.construct if want to avoid extends for traits?
-//  weird though
-// XXX so can't have anything but text? no good I think
-//  need another way to compose w text
-export class Button extends Text<TextButtonOpts> { // XXX TextButton
+export class Button extends Component<ButtonOpts> {
   init() {
-    tap(this.elem, this);
+    tap(this.elem, this); // XXX stilll try for press I think
   }
 
   render() {
@@ -28,22 +21,26 @@ export class Button extends Text<TextButtonOpts> { // XXX TextButton
     super.render();
   }
 
-  // XXX or just let app extend Button
-  //  but problem is it means recreating inheritance chain off button?
+  // setOpts() {
+  //   // XXX
+  //   this.jack = send... ?
+  // }
+
   send(msg: any) {
     if (msg.fire)
-      this.press(msg.fire);
+      Button.prototype.press.call(this, msg.fire); // XXX sorry subclasses?
     super.send(msg);
   }
 
+  // XXX now reconsider how this whole thing works re: press vs tap, pressure, etc
   async press(e: Event) {
     // XXX def fix this and hook up to press? eh press dont help
     const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
     const act = this.opts.act ?? this.constructor.name;
     const k = `do_${act}`;
     const f = app[k];
+    this.elem.addClass('pressed'); // XXX not just if app? somewhere else?
     if (f instanceof Function) {
-      this.elem.addClass('pressed'); // XXX not just if app? somewhere else?
       try {
         // XXX replace with press trigger? throttle? lpf
         await new Promise(ok => setTimeout(ok, hold));
@@ -51,9 +48,9 @@ export class Button extends Text<TextButtonOpts> { // XXX TextButton
       } catch (err) {
         console.error(err);
       }
-      this.elem.removeClass('pressed');
-    } else {
-      console.debug('stray pressed component', this);
     }
+    this.elem.removeClass('pressed');
   }
 }
+
+export class TextButton extends Component.combo(Text, Button) {}

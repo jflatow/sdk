@@ -93,6 +93,10 @@ export class Component<Opts> extends Transform<Opts> {
     this.init();
   }
 
+  static combo(a: any, b: any): any {
+    return combo(a, b);
+  }
+
   static quick<Opts>(elem: Elem, opts?: Opts) {
     return new this(elem, undefined, opts);
   }
@@ -102,10 +106,41 @@ export class Component<Opts> extends Transform<Opts> {
   }
 
   render() {
-    // override to propagate external state changes
+    // override to propagate external state changes (to elem)
     //  remember to call super
     this.subs?.forEach(c => c.render());
   }
+}
+
+export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {
+  class C extends Component<A & B> {
+    init() {
+      a.prototype.init.call(this);
+      b.prototype.init.call(this);
+    }
+
+    render() {
+      a.prototype.render.call(this);
+      b.prototype.render.call(this);
+    }
+
+    setOpts(opts: A & B): A & B {
+      // opts may get set multiple times
+      //  however opts should generally be independent to be combined
+      //   if not, the order and impls of setOpts will matter
+      a.prototype.setOpts.call(this, opts);
+      b.prototype.setOpts.call(this, opts);
+      return super.setOpts(opts);
+    }
+
+    // XXX you wouldnt send to both, jack is anyway perfect
+    send(...msgs: any[]) {
+      a.prototype.send.call(this, ...msgs);
+      b.prototype.send.call(this, ...msgs);
+      return super.send(...msgs);
+    }
+  }
+  return C;
 }
 
 export class Events {

@@ -1390,6 +1390,9 @@ class Component extends Transform {
         this.subs = [];
         this.init();
     }
+    static combo(a, b) {
+        return combo(a, b);
+    }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
     }
@@ -1397,6 +1400,29 @@ class Component extends Transform {
     render() {
         this.subs?.forEach((c)=>c.render());
     }
+}
+function combo(a, b) {
+    class C extends Component {
+        init() {
+            a.prototype.init.call(this);
+            b.prototype.init.call(this);
+        }
+        render() {
+            a.prototype.render.call(this);
+            b.prototype.render.call(this);
+        }
+        setOpts(opts) {
+            a.prototype.setOpts.call(this, opts);
+            b.prototype.setOpts.call(this, opts);
+            return super.setOpts(opts);
+        }
+        send(...msgs) {
+            a.prototype.send.call(this, ...msgs);
+            b.prototype.send.call(this, ...msgs);
+            return super.send(...msgs);
+        }
+    }
+    return C;
 }
 class Events {
     static pointerup = 'pointerup';
@@ -1412,6 +1438,7 @@ export { broadcast as broadcast };
 export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
+export { combo as combo };
 export { Events as Events };
 function press(elem, jack_, opts_) {
     const jack = Orb.from(jack_);
@@ -1551,7 +1578,7 @@ class Text extends Component {
         return super.setOpts(opts);
     }
 }
-class Button extends Text {
+class Button extends Component {
     init() {
         tap(this.elem, this);
     }
@@ -1569,7 +1596,7 @@ class Button extends Text {
         super.render();
     }
     send(msg) {
-        if (msg.fire) this.press(msg.fire);
+        if (msg.fire) Button.prototype.press.call(this, msg.fire);
         super.send(msg);
     }
     async press(e) {
@@ -1577,19 +1604,19 @@ class Button extends Text {
         const act = this.opts.act ?? this.constructor.name;
         const k = `do_${act}`;
         const f = app[k];
+        this.elem.addClass('pressed');
         if (f instanceof Function) {
-            this.elem.addClass('pressed');
             try {
                 await new Promise((ok)=>setTimeout(ok, hold));
                 await f(undefined, e);
             } catch (err) {
                 console.error(err);
             }
-            this.elem.removeClass('pressed');
-        } else {
-            console.debug('stray pressed component', this);
         }
+        this.elem.removeClass('pressed');
     }
+}
+class TextButton extends Component.combo(Text, Button) {
 }
 class Wagon extends Component {
     move(delta, ...rest) {
@@ -1608,6 +1635,7 @@ class Wagon extends Component {
 }
 const mod2 = {
     Button,
+    TextButton,
     Text,
     Wagon
 };

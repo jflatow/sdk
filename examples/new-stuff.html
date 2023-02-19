@@ -23,7 +23,7 @@
       import { assert } from './assert.js';
       import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
       const { Amp, Loop } = Transforms;
-      const { Button, Text, Wagon } = Components;
+      const { Button, Text, TextButton, Wagon } = Components;
 
       const paper = Sky.$('#paper');
       const text1 = new Text(paper.div());
@@ -31,10 +31,11 @@
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
       const text4 = Text.quick(paper.div(), { text: "Hello there" });
 
-      const button1 = new Button(paper.div(), null, {
-        app: { do_Button: () => console.log('do_Button', button1) }
+      // XXX text button?
+      const button1 = new TextButton(paper.div(), null, {
+        app: { do_TextButton: () => console.log('do_TextButton', button1) }
       });
-      const button2 = new Button(paper.div(), {
+      const button2 = new TextButton(paper.div(), {
         grab: (e) => console.log('grab', button2, e),
         move: function ([dp]) {
           button2.elem.txt(dp);
@@ -42,6 +43,9 @@
         send: (m) => console.log('send', m),
         free: (e) => console.log('free', button2, e),
       });
+      // XXX
+      window.button1 = button1;
+      window.button2 = button2;
 
       let grabbed, freed;
       Gestures.press(text1.elem, new Wagon(text2.elem, {

@@ -240,6 +240,9 @@ class Component extends Transform {
         this.subs = [];
         this.init();
     }
+    static combo(a, b) {
+        return combo(a, b);
+    }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
     }
@@ -247,6 +250,29 @@ class Component extends Transform {
     render() {
         this.subs?.forEach((c)=>c.render());
     }
+}
+function combo(a, b) {
+    class C extends Component {
+        init() {
+            a.prototype.init.call(this);
+            b.prototype.init.call(this);
+        }
+        render() {
+            a.prototype.render.call(this);
+            b.prototype.render.call(this);
+        }
+        setOpts(opts) {
+            a.prototype.setOpts.call(this, opts);
+            b.prototype.setOpts.call(this, opts);
+            return super.setOpts(opts);
+        }
+        send(...msgs) {
+            a.prototype.send.call(this, ...msgs);
+            b.prototype.send.call(this, ...msgs);
+            return super.send(...msgs);
+        }
+    }
+    return C;
 }
 class Events {
     static pointerup = 'pointerup';
@@ -262,4 +288,5 @@ export { broadcast as broadcast };
 export { Orb as Orb };
 export { Transform as Transform };
 export { Component as Component };
+export { combo as combo };
 export { Events as Events };
