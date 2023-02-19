@@ -449,7 +449,7 @@ export class Elem {
     return this;
   }
 
-  off(types, fun, capture) {
+  off(types, fun, capture?: any) {
     const node = this.node;
     types.split(/\s+/).map((type) => {
       node.removeEventListener(type, fun, capture)
@@ -457,17 +457,17 @@ export class Elem {
     return this;
   }
 
-  upon(types, fun, capture) {
+  upon(types, fun, capture?: any) {
     const f = (e) => fun.call(this, get(e.detail || {}, 'value'), e)
     return this.on(types, f, capture)
   }
 
-  once(types, fun, capture) {
+  once(types, fun, capture?: any) {
     let n = 0;
     return this.til(types, fun, () => n++, capture)
   }
 
-  til(types, fun, dead, capture) {
+  til(types, fun, dead, capture?: any) {
     const self = this;
     return this.on(types, function f(...args) {
       if (dead())

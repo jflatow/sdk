@@ -31,9 +31,16 @@
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
       const text4 = Text.quick(paper.div(), { text: "Hello there" });
 
-      // XXX not very convenient to construct w/ action if not app
       const button1 = new Button(paper.div(), null, {
-        app: { do_Button: () => console.log('xxx do') }
+        app: { do_Button: () => console.log('do_Button', button1) }
+      });
+      const button2 = new Button(paper.div(), {
+        grab: (e) => console.log('grab', button2, e),
+        move: function ([dp]) {
+          button2.elem.txt(dp);
+        },
+        send: (m) => console.log('send', m),
+        free: (e) => console.log('free', button2, e),
       });
 
       let grabbed, freed;
@@ -63,6 +70,14 @@
         assert(grabbed, 'not grabbed');
         assert(freed, 'not freed');
       }, 3100);
+
+      setTimeout(() => {
+        button2.elem.dispatch(new PointerEvent(Events.pointerdown));
+      }, 3200);
+      setTimeout(() => {
+        button2.elem.dispatch(new PointerEvent(Events.pointerup, { bubbles: true }));
+        button2.setOpts({});
+      }, 5000);
     </script>
   </body>
 </html>

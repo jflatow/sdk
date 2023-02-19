@@ -1,7 +1,7 @@
 import { Elem, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike } from '../orb.ts';
 
-export type SwipeOpts = { prevent?: boolean, stop?: boolean };
+export type SwipeOpts = { glob?: boolean, prevent?: boolean, stop?: boolean };
 
 export function swipe(elem: Elem, jack_: OrbLike, opts_: SwipeOpts = {}) {
   const jack = Orb.from(jack_);

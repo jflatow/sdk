@@ -202,7 +202,7 @@ class Orb {
     }
     grab(...args) {}
     move(delta, ...args) {}
-    send(...messages) {}
+    send(...msgs) {}
     free(...args) {}
 }
 class Transform extends Orb {
@@ -219,8 +219,8 @@ class Transform extends Orb {
     move(delta, ...args) {
         this.jack.move(delta, ...args);
     }
-    send(...messages) {
-        this.jack.send(...messages);
+    send(...msgs) {
+        this.jack.send(...msgs);
     }
     free(...args) {
         this.jack.free(...args);

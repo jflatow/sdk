@@ -5,7 +5,7 @@ export type Func = (...args: any[]) => any;
 
 export type GrabFn = (...args: any[]) => void;
 export type MoveFn = (delta: number[], ...args: any[]) => void;
-export type SendFn = (...messages: any[]) => void;
+export type SendFn = (...msgs: any[]) => void;
 export type FreeFn = (...args: any[]) => void;
 
 export interface IOrb {
@@ -43,7 +43,7 @@ export class Orb implements IOrb {
 
   grab(...args: any[]) {}
   move(delta: number[], ...args: any[]) {}
-  send(...messages: any[]) {}
+  send(...msgs: any[]) {}
   free(...args: any[]) {}
 }
 
@@ -65,8 +65,8 @@ export class Transform<Opts> extends Orb {
     this.jack.move(delta, ...args);
   }
 
-  send(...messages: any[]) {
-    this.jack.send(...messages);
+  send(...msgs: any[]) {
+    this.jack.send(...msgs);
   }
 
   free(...args: any[]) {

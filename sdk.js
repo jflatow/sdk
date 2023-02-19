@@ -1352,7 +1352,7 @@ class Orb {
     }
     grab(...args) {}
     move(delta, ...args) {}
-    send(...messages) {}
+    send(...msgs) {}
     free(...args) {}
 }
 class Transform extends Orb {
@@ -1369,8 +1369,8 @@ class Transform extends Orb {
     move(delta, ...args) {
         this.jack.move(delta, ...args);
     }
-    send(...messages) {
-        this.jack.send(...messages);
+    send(...msgs) {
+        this.jack.send(...msgs);
     }
     free(...args) {
         this.jack.free(...args);
@@ -1553,7 +1553,7 @@ class Text extends Component {
 }
 class Button extends Text {
     init() {
-        tap(this.elem, ({ fire: e  })=>this.press(e));
+        tap(this.elem, this);
     }
     render() {
         const app = this.opts.app ?? {};
@@ -1568,6 +1568,10 @@ class Button extends Text {
         }
         super.render();
     }
+    send(msg) {
+        if (msg.fire) this.press(msg.fire);
+        super.send(msg);
+    }
     async press(e) {
         const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
         const act = this.opts.act ?? this.constructor.name;
@@ -1577,7 +1581,7 @@ class Button extends Text {
             this.elem.addClass('pressed');
             try {
                 await new Promise((ok)=>setTimeout(ok, hold));
-                await f();
+                await f(undefined, e);
             } catch (err) {
                 console.error(err);
             }
