@@ -113,7 +113,7 @@ export class Component<Opts> extends Transform<Opts> {
 }
 
 export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {
-  class C extends Component<A & B> {
+  class c extends Component<A & B> {
     init() {
       a.prototype.init.call(this);
       b.prototype.init.call(this);
@@ -127,20 +127,34 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
     setOpts(opts: A & B): A & B {
       // opts may get set multiple times
       //  however opts should generally be independent to be combined
-      //   if not, the order and impls of setOpts will matter
+      //   otherwise the order and impls of setOpts will matter
       a.prototype.setOpts.call(this, opts);
       b.prototype.setOpts.call(this, opts);
       return super.setOpts(opts);
     }
 
-    // XXX you wouldnt send to both, jack is anyway perfect
-    send(...msgs: any[]) {
-      a.prototype.send.call(this, ...msgs);
-      b.prototype.send.call(this, ...msgs);
-      return super.send(...msgs);
+    // XXX ok this works too but what if they both define?
+    //  ok yes it well-defined goes to first but
+    //  unless I want to make it where you can't *not* call jack?
+    //  so back to do(method: keyof IOrb, ...args: any[])
+    //   calls Orb dfn if it exists, continues on jack?
+    //   then we can do callAll
+    //  why is it same or diff for setOpts w/ super?
+    callFirst(method: keyof IOrb, ...args: any[]): any {
+      if (a.prototype.hasOwnProperty(method))
+        return a.prototype[method].call(this, ...args);
+      else if (b.prototype.hasOwnProperty(method))
+        return b.prototype[method].call(this, ...args);
+      else
+        return (super[method] as any)(...args);
     }
+
+    grab(...args: any[]) { this.callFirst('grab', ...args) }
+    move(...args: any[]) { this.callFirst('move', ...args) }
+    send(...args: any[]) { this.callFirst('send', ...args) }
+    free(...args: any[]) { this.callFirst('free', ...args) }
   }
-  return C;
+  return c;
 }
 
 export class Events {

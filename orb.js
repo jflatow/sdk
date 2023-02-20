@@ -252,7 +252,7 @@ class Component extends Transform {
     }
 }
 function combo(a, b) {
-    class C extends Component {
+    class c extends Component {
         init() {
             a.prototype.init.call(this);
             b.prototype.init.call(this);
@@ -266,13 +266,25 @@ function combo(a, b) {
             b.prototype.setOpts.call(this, opts);
             return super.setOpts(opts);
         }
-        send(...msgs) {
-            a.prototype.send.call(this, ...msgs);
-            b.prototype.send.call(this, ...msgs);
-            return super.send(...msgs);
+        callFirst(method, ...args) {
+            if (a.prototype.hasOwnProperty(method)) return a.prototype[method].call(this, ...args);
+            else if (b.prototype.hasOwnProperty(method)) return b.prototype[method].call(this, ...args);
+            else return super[method](...args);
+        }
+        grab(...args) {
+            this.callFirst('grab', ...args);
+        }
+        move(...args) {
+            this.callFirst('move', ...args);
+        }
+        send(...args) {
+            this.callFirst('send', ...args);
+        }
+        free(...args) {
+            this.callFirst('free', ...args);
         }
     }
-    return C;
+    return c;
 }
 class Events {
     static pointerup = 'pointerup';
