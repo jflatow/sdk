@@ -3,7 +3,7 @@ import { Event, Events, Orb, OrbLike } from '../orb.ts';
 
 export interface PressOpts { gain?: number, every?: number, prevent?: boolean };
 
-export function press(elem: Elem, jack_: OrbLike, opts_: PressOpts) {
+export function press(elem: Elem, jack_: OrbLike, opts_: PressOpts = {}) {
   const jack = Orb.from(jack_);
   const opts = up({ gain: 1, every: 33 }, opts_);
   let i: any;
@@ -14,7 +14,7 @@ export function press(elem: Elem, jack_: OrbLike, opts_: PressOpts) {
       e.preventDefault();
     elem.doc().once(Events.pointerexit, (e: Event) => {
       jack.free(e);
-      clearInterval(i);
+      clearInterval(i)
       if (opts.prevent)
         e.preventDefault();
     });

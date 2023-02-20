@@ -1452,7 +1452,7 @@ export { Transform as Transform };
 export { Component as Component };
 export { combo as combo };
 export { Events as Events };
-function press(elem, jack_, opts_) {
+function press(elem, jack_, opts_ = {}) {
     const jack = Orb.from(jack_);
     const opts = up({
         gain: 1,
@@ -1561,7 +1561,7 @@ function tap(elem, jack, opts_ = {}) {
         stop: opts.stop
     });
 }
-function dbltap(elem, jack_, opts_) {
+function dbltap(elem, jack_, opts_ = {}) {
     const jack = Orb.from(jack_);
     const opts = up({
         gap: 250
@@ -1591,8 +1591,9 @@ class Text extends Component {
     }
 }
 class Button extends Component {
+    level;
     init() {
-        tap(this.elem, this);
+        press(this.elem, this);
     }
     render() {
         const app = this.opts.app ?? {};
@@ -1607,9 +1608,28 @@ class Button extends Component {
         }
         super.render();
     }
+    move(deltas, e, ...rest) {
+        const [dp] = deltas;
+        this.level = (this.level || 0) + dp;
+        if (this.level > 25) {
+            Button.prototype.press.call(this, e);
+            this.level = 0;
+        }
+        this.elem.style({
+            opacity: 1 - this.level / 25
+        });
+        super.move(deltas, e, ...rest);
+    }
     send(msg) {
         if (msg.fire) Button.prototype.press.call(this, msg.fire);
         super.send(msg);
+    }
+    free(...rest) {
+        this.level = 0;
+        this.elem.style({
+            opacity: null
+        });
+        super.free(...rest);
     }
     async press(e) {
         const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;

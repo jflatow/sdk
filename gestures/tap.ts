@@ -39,7 +39,7 @@ export function tap(elem: Elem, jack: OrbLike, opts_: TapOpts = {}) {
 
 export interface DblTapOpts { gap?: number, prevent?: boolean };
 
-export function dbltap(elem: Elem, jack_: OrbLike, opts_: DblTapOpts) {
+export function dbltap(elem: Elem, jack_: OrbLike, opts_: DblTapOpts = {}) {
   const jack = Orb.from(jack_);
   const opts = up({ gap: 250 }, opts_);
   let taps = 0;

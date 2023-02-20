@@ -140,6 +140,11 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
     //   calls Orb dfn if it exists, continues on jack?
     //   then we can do callAll
     //  why is it same or diff for setOpts w/ super?
+    //  but basically this would mean no calling self.jack.move etc
+    //   you'd always have to .do, or Orb.move(jack, ...)
+    //    which is kinda the way it worked before?
+    //  well lets come back, now that we pass through at least
+    //   can fix press, then re-evaluate
     callFirst(method: keyof IOrb, ...args: any[]): any {
       if (a.prototype.hasOwnProperty(method))
         return a.prototype[method].call(this, ...args);
