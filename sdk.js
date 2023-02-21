@@ -2,7 +2,7 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
+const abs = Math.abs, log = Math.log, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 const add = (p, d)=>isFinite(d) ? p + d : d;
 const dfn = (x, d)=>isNaN(x) ? d : x;
 const fnt = (x, d)=>isFinite(x) ? x : d;
@@ -410,7 +410,7 @@ class Elem {
     }
     animate(fun, n) {
         let self = this, i = 0;
-        anim(function f() {
+        window.requestAnimationFrame(function f() {
             if (fun.call(self, self.node, i++) || i < n) window.requestAnimationFrame(f);
         });
         return this;
@@ -1292,6 +1292,7 @@ class RGB {
 }
 const mod = {
     abs: abs,
+    log: log,
     min: min,
     max: max,
     Rt2: Rt2,
@@ -1334,6 +1335,7 @@ function broadcast(desc) {
     return cast;
 }
 class Orb {
+    grip;
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
@@ -1349,11 +1351,16 @@ class Orb {
     }
     constructor(impl = {}){
         up(this, impl);
+        this.grip = 0;
     }
-    grab(...args) {}
+    grab(...args) {
+        this.grip++;
+    }
     move(delta, ...args) {}
     send(...msgs) {}
-    free(...args) {}
+    free(...args) {
+        this.grip--;
+    }
 }
 class Transform extends Orb {
     jack;
@@ -1365,6 +1372,7 @@ class Transform extends Orb {
     }
     grab(...args) {
         this.jack.grab(...args);
+        super.grab(...args);
     }
     move(delta, ...args) {
         this.jack.move(delta, ...args);
@@ -1374,6 +1382,7 @@ class Transform extends Orb {
     }
     free(...args) {
         this.jack.free(...args);
+        super.free(...args);
     }
     setOpts(opts) {
         return this.opts = opts;
@@ -1650,6 +1659,49 @@ class Button extends Component {
 }
 class TextButton extends Component.combo(Text, Button) {
 }
+class Spring extends Component {
+    dx = 0;
+    dy = 0;
+    anim;
+    move(delta, ...rest) {
+        const { lock , kx , ky , lx , ly , tx , ty , ...fns } = up({
+            kx: 8,
+            ky: 8,
+            lx: 1,
+            ly: 1,
+            tx: 1,
+            ty: 1
+        }, this.opts);
+        const restore = fns.restore ?? ((dx, dy, mx, my)=>{
+            if (lock && this.grip) return;
+            if (mx > tx) dx /= kx * log(mx + 1) || 1;
+            if (my > ty) dy /= ky * log(my + 1) || 1;
+            this.dx -= dx;
+            this.dy -= dy;
+            return super.move([
+                dx,
+                dy
+            ], ...rest);
+        });
+        const [dx, dy] = delta;
+        this.dx += lx * dx;
+        this.dy += ly * dy;
+        fns.stretch?.call(this);
+        if (!this.anim) {
+            fns.perturb?.call(this);
+            this.anim = this.elem.animate(()=>{
+                const dx = this.dx, dy = this.dy, mx = abs(dx), my = abs(dy);
+                const more = restore.call(this, dx, dy, mx, my) || this.dx || this.dy || this.grip;
+                if (!more) {
+                    this.anim = null;
+                    fns.balance?.call(this);
+                }
+                return more;
+            });
+        }
+        super.move(delta, ...rest);
+    }
+}
 class Wagon extends Component {
     move(delta, ...rest) {
         const [dx, dy] = delta;
@@ -1669,6 +1721,7 @@ const mod2 = {
     Button,
     TextButton,
     Text,
+    Spring,
     Wagon
 };
 class Amp extends Transform {

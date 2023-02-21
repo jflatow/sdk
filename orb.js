@@ -184,6 +184,7 @@ function broadcast(desc) {
     return cast;
 }
 class Orb {
+    grip;
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
@@ -199,11 +200,16 @@ class Orb {
     }
     constructor(impl = {}){
         up(this, impl);
+        this.grip = 0;
     }
-    grab(...args) {}
+    grab(...args) {
+        this.grip++;
+    }
     move(delta, ...args) {}
     send(...msgs) {}
-    free(...args) {}
+    free(...args) {
+        this.grip--;
+    }
 }
 class Transform extends Orb {
     jack;
@@ -215,6 +221,7 @@ class Transform extends Orb {
     }
     grab(...args) {
         this.jack.grab(...args);
+        super.grab(...args);
     }
     move(delta, ...args) {
         this.jack.move(delta, ...args);
@@ -224,6 +231,7 @@ class Transform extends Orb {
     }
     free(...args) {
         this.jack.free(...args);
+        super.free(...args);
     }
     setOpts(opts) {
         return this.opts = opts;

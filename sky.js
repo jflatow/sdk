@@ -2,7 +2,7 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
+const abs = Math.abs, log = Math.log, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 const add = (p, d)=>isFinite(d) ? p + d : d;
 const dfn = (x, d)=>isNaN(x) ? d : x;
 const fnt = (x, d)=>isFinite(x) ? x : d;
@@ -410,7 +410,7 @@ class Elem {
     }
     animate(fun, n) {
         let self = this, i = 0;
-        anim(function f() {
+        window.requestAnimationFrame(function f() {
             if (fun.call(self, self.node, i++) || i < n) window.requestAnimationFrame(f);
         });
         return this;
@@ -1290,7 +1290,7 @@ class RGB {
         });
     }
 }
-export { abs as abs, min as min, max as max, Rt2 as Rt2, Inf as Inf };
+export { abs as abs, log as log, min as min, max as max, Rt2 as Rt2, Inf as Inf };
 export { add as add };
 export { dfn as dfn };
 export { fnt as fnt };

@@ -1,5 +1,5 @@
 // @ts-nocheck
-export const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
+export const abs = Math.abs, log = Math.log, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 export const add = (p, d) => isFinite(d) ? p + d : d;
 export const dfn = (x, d) => isNaN(x) ? d : x;
 export const fnt = (x, d) => isFinite(x) ? x : d;
@@ -407,9 +407,9 @@ export class Elem {
     return i;
   }
 
-  animate(fun, n) {
+  animate(fun, n?) {
     let self = this, i = 0;
-    anim(function f() {
+    window.requestAnimationFrame(function f() {
       if (fun.call(self, self.node, i++) || i < n)
         window.requestAnimationFrame(f)
     })

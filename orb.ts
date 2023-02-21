@@ -26,6 +26,8 @@ export function broadcast(desc: { [k: string]: any[] }): { [k: string]: Func } {
 }
 
 export class Orb implements IOrb {
+  grip: number;
+
   static from(jack: OrbLike): Orb {
     if (jack instanceof Orb)
       return jack;
@@ -39,12 +41,13 @@ export class Orb implements IOrb {
 
   constructor(impl: IOrb = {}) {
     up(this, impl);
+    this.grip = 0;
   }
 
-  grab(...args: any[]) {}
+  grab(...args: any[]) { this.grip++ }
   move(delta: number[], ...args: any[]) {}
   send(...msgs: any[]) {}
-  free(...args: any[]) {}
+  free(...args: any[]) { this.grip-- }
 }
 
 export class Transform<Opts> extends Orb {
@@ -59,6 +62,7 @@ export class Transform<Opts> extends Orb {
 
   grab(...args: any[]) {
     this.jack.grab(...args);
+    super.grab(...args); // XXX may avoid if we force driving through jacks (and grip)
   }
 
   move(delta: number[], ...args: any[]) {
@@ -71,6 +75,7 @@ export class Transform<Opts> extends Orb {
 
   free(...args: any[]) {
     this.jack.free(...args)
+    super.free(...args); // XXX
   }
 
   setOpts(opts: Opts): Opts {

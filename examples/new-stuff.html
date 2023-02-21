@@ -23,7 +23,7 @@
       import { assert } from './assert.js';
       import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
       const { Amp, Loop } = Transforms;
-      const { Button, Text, TextButton, Wagon } = Components;
+      const { Button, Spring, Text, TextButton, Wagon } = Components;
 
       const paper = Sky.$('#paper');
       const text1 = new Text(paper.div());
@@ -59,7 +59,7 @@
         },
       }), { gain: 3 });
       Gestures.scroll(paper, new Wagon(text3.elem));
-      Gestures.swipe(paper, new Wagon(text4.elem));
+      Gestures.swipe(paper, new Spring(text4.elem, new Wagon(text4.elem)));
       Gestures.tap(paper, new Wagon(paper));
 
       // XXX how to start building out browser tests?
