@@ -14,6 +14,7 @@ export interface SpringOpts {
 
 export class Spring extends Component<SpringOpts> {
   // XXX can combos handle state like this? have to inline initializers?
+  //  yeah inline I think for composability
   dx = 0;
   dy = 0;
   anim?: any;

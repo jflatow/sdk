@@ -64,7 +64,7 @@
 
       // XXX how to start building out browser tests?
       //  tests given component classes, will leverage from progs?
-      //  compose sequences of actions/messages
+      //  compose sequences of actions/messages, timelines
       text1.elem.dispatch(new PointerEvent(Events.pointerdown, { pressure: 1 }));
       setTimeout(() => {
         text1.elem.dispatch(new PointerEvent(Events.pointerup, { bubbles: true }));
@@ -80,7 +80,7 @@
       }, 1000);
       setTimeout(() => {
         button2.elem.dispatch(new PointerEvent(Events.pointerup, { bubbles: true }));
-        button2.setOpts({});
+        button2.setOpts({ repeat: true });
       }, 2000);
     </script>
   </body>

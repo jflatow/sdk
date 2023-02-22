@@ -5,7 +5,7 @@ export type Func = (...args: any[]) => any;
 
 export type GrabFn = (...args: any[]) => void;
 export type MoveFn = (delta: number[], ...args: any[]) => void;
-export type SendFn = (...msgs: any[]) => void;
+export type SendFn = (...args: any[]) => void;
 export type FreeFn = (...args: any[]) => void;
 
 export interface IOrb {
@@ -26,7 +26,9 @@ export function broadcast(desc: { [k: string]: any[] }): { [k: string]: Func } {
 }
 
 export class Orb implements IOrb {
-  grip: number;
+  grip: number = 0;
+  halt: boolean = false;
+  jack?: Orb;
 
   static from(jack: OrbLike): Orb {
     if (jack instanceof Orb)
@@ -39,19 +41,42 @@ export class Orb implements IOrb {
       return new this(jack);
   }
 
-  constructor(impl: IOrb = {}) {
-    up(this, impl);
-    this.grip = 0;
+  static do<R>(method: string, instance: any, ...args: any[]): R {
+    return (instance[method] ?? (this.prototype as any)[method])?.call(instance, ...args);
   }
 
-  grab(...args: any[]) { this.grip++ }
-  move(delta: number[], ...args: any[]) {}
-  send(...msgs: any[]) {}
-  free(...args: any[]) { this.grip-- }
+  constructor(impl: IOrb = {}) {
+    up(this, impl);
+  }
+
+  grab(...args: any[]) {
+    if (!this.halt) {
+      this.grip++;
+      this.jack?.grab(...args);
+    }
+  }
+
+  move(deltas: number[], ...args: any[]) {
+    if (!this.halt) {
+      this.jack?.move(deltas, ...args);
+    }
+  }
+
+  send(...args: any[]) {
+    if (!this.halt) {
+      this.jack?.send(...args);
+    }
+  }
+
+  free(...args: any[]) {
+    if (!this.halt) {
+      this.grip--;
+      this.jack?.free(...args);
+    }
+  }
 }
 
 export class Transform<Opts> extends Orb {
-  jack: Orb;
   opts: Opts;
 
   constructor(jack: OrbLike = {}, opts: Opts = {} as Opts, impl = {}) {
@@ -60,33 +85,20 @@ export class Transform<Opts> extends Orb {
     this.opts = this.setOpts(opts);
   }
 
-  grab(...args: any[]) {
-    this.jack.grab(...args);
-    super.grab(...args); // XXX may avoid if we force driving through jacks (and grip)
-  }
-
-  move(delta: number[], ...args: any[]) {
-    this.jack.move(delta, ...args);
-  }
-
-  send(...msgs: any[]) {
-    this.jack.send(...msgs);
-  }
-
-  free(...args: any[]) {
-    this.jack.free(...args)
-    super.free(...args); // XXX
-  }
-
   setOpts(opts: Opts): Opts {
     // transition this.opts -> opts
     //  returns whatever we *actually* set
     // subtypes can simply chain the new opts they handle
     //  and return super.setOpts(chain(opts)) or chain(super.setOpts(opts))
-    return this.opts = opts;
+    if (!this.halt) {
+      this.opts = opts;
+    }
+    return this.opts;
   }
 }
 
+// XXX styles? default init? added to what?
+//  I think cool to just compose default style 'sheet'
 export class Component<Opts> extends Transform<Opts> {
   elem: Elem;
   subs?: Component<any>[];
@@ -113,56 +125,38 @@ export class Component<Opts> extends Transform<Opts> {
   render() {
     // override to propagate external state changes (to elem)
     //  remember to call super
-    this.subs?.forEach(c => c.render());
+    if (!this.halt) {
+      this.subs?.forEach(c => c.render());
+    }
   }
 }
 
 export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {
+  // components should generally be independent of each other to be combined
+  //  this version generalizes naturally to list, but binary is nice inline
   class c extends Component<A & B> {
+    callAll<R>(method: string, ...args: any[]): R {
+      const _ = (b.prototype as any)[method]?.call(up(this, { halt: true }), ...args);
+      const r = (a.prototype as any)[method]?.call(up(this, { halt: false }), ...args);
+      return r as R;
+    }
+
     init() {
-      a.prototype.init.call(this);
-      b.prototype.init.call(this);
+      return this.callAll('init');
     }
 
     render() {
-      a.prototype.render.call(this);
-      b.prototype.render.call(this);
+      return this.callAll('render');
     }
 
     setOpts(opts: A & B): A & B {
-      // opts may get set multiple times
-      //  however opts should generally be independent to be combined
-      //   otherwise the order and impls of setOpts will matter
-      a.prototype.setOpts.call(this, opts);
-      b.prototype.setOpts.call(this, opts);
-      return super.setOpts(opts);
+      return this.callAll('setOpts', opts);
     }
 
-    // XXX ok this works too but what if they both define?
-    //  ok yes it well-defined goes to first but
-    //  unless I want to make it where you can't *not* call jack?
-    //  so back to do(method: keyof IOrb, ...args: any[])
-    //   calls Orb dfn if it exists, continues on jack?
-    //   then we can do callAll
-    //  why is it same or diff for setOpts w/ super?
-    //  but basically this would mean no calling self.jack.move etc
-    //   you'd always have to .do, or Orb.move(jack, ...)
-    //    which is kinda the way it worked before?
-    //  well lets come back, now that we pass through at least
-    //   can fix press, then re-evaluate
-    callFirst(method: keyof IOrb, ...args: any[]): any {
-      if (a.prototype.hasOwnProperty(method))
-        return a.prototype[method].call(this, ...args);
-      else if (b.prototype.hasOwnProperty(method))
-        return b.prototype[method].call(this, ...args);
-      else
-        return (super[method] as any)(...args);
-    }
-
-    grab(...args: any[]) { this.callFirst('grab', ...args) }
-    move(...args: any[]) { this.callFirst('move', ...args) }
-    send(...args: any[]) { this.callFirst('send', ...args) }
-    free(...args: any[]) { this.callFirst('free', ...args) }
+    grab(...args: any[]) { this.callAll('grab', ...args) }
+    move(...args: any[]) { this.callAll('move', ...args) }
+    send(...args: any[]) { this.callAll('send', ...args) }
+    free(...args: any[]) { this.callAll('free', ...args) }
   }
   return c;
 }

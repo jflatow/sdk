@@ -1335,7 +1335,9 @@ function broadcast(desc) {
     return cast;
 }
 class Orb {
-    grip;
+    grip = 0;
+    halt = false;
+    jack;
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
@@ -1349,43 +1351,47 @@ class Orb {
         }));
         else return new this(jack);
     }
+    static do(method, instance, ...args) {
+        return (instance[method] ?? this.prototype[method])?.call(instance, ...args);
+    }
     constructor(impl = {}){
         up(this, impl);
-        this.grip = 0;
     }
     grab(...args) {
-        this.grip++;
+        if (!this.halt) {
+            this.grip++;
+            this.jack?.grab(...args);
+        }
     }
-    move(delta, ...args) {}
-    send(...msgs) {}
+    move(deltas, ...args) {
+        if (!this.halt) {
+            this.jack?.move(deltas, ...args);
+        }
+    }
+    send(...args) {
+        if (!this.halt) {
+            this.jack?.send(...args);
+        }
+    }
     free(...args) {
-        this.grip--;
+        if (!this.halt) {
+            this.grip--;
+            this.jack?.free(...args);
+        }
     }
 }
 class Transform extends Orb {
-    jack;
     opts;
     constructor(jack = {}, opts = {}, impl = {}){
         super(impl);
         this.jack = Orb.from(jack);
         this.opts = this.setOpts(opts);
     }
-    grab(...args) {
-        this.jack.grab(...args);
-        super.grab(...args);
-    }
-    move(delta, ...args) {
-        this.jack.move(delta, ...args);
-    }
-    send(...msgs) {
-        this.jack.send(...msgs);
-    }
-    free(...args) {
-        this.jack.free(...args);
-        super.free(...args);
-    }
     setOpts(opts) {
-        return this.opts = opts;
+        if (!this.halt) {
+            this.opts = opts;
+        }
+        return this.opts;
     }
 }
 class Component extends Transform {
@@ -1407,40 +1413,42 @@ class Component extends Transform {
     }
     init() {}
     render() {
-        this.subs?.forEach((c)=>c.render());
+        if (!this.halt) {
+            this.subs?.forEach((c)=>c.render());
+        }
     }
 }
 function combo(a, b) {
     class c extends Component {
+        callAll(method, ...args) {
+            b.prototype[method]?.call(up(this, {
+                halt: true
+            }), ...args);
+            const r = a.prototype[method]?.call(up(this, {
+                halt: false
+            }), ...args);
+            return r;
+        }
         init() {
-            a.prototype.init.call(this);
-            b.prototype.init.call(this);
+            return this.callAll('init');
         }
         render() {
-            a.prototype.render.call(this);
-            b.prototype.render.call(this);
+            return this.callAll('render');
         }
         setOpts(opts) {
-            a.prototype.setOpts.call(this, opts);
-            b.prototype.setOpts.call(this, opts);
-            return super.setOpts(opts);
-        }
-        callFirst(method, ...args) {
-            if (a.prototype.hasOwnProperty(method)) return a.prototype[method].call(this, ...args);
-            else if (b.prototype.hasOwnProperty(method)) return b.prototype[method].call(this, ...args);
-            else return super[method](...args);
+            return this.callAll('setOpts', opts);
         }
         grab(...args) {
-            this.callFirst('grab', ...args);
+            this.callAll('grab', ...args);
         }
         move(...args) {
-            this.callFirst('move', ...args);
+            this.callAll('move', ...args);
         }
         send(...args) {
-            this.callFirst('send', ...args);
+            this.callAll('send', ...args);
         }
         free(...args) {
-            this.callFirst('free', ...args);
+            this.callAll('free', ...args);
         }
     }
     return c;
@@ -1618,27 +1626,35 @@ class Button extends Component {
         super.render();
     }
     move(deltas, e, ...rest) {
-        const [dp] = deltas;
+        const [dp] = deltas, threshold = this.opts.threshold ?? 18;
         this.level = (this.level || 0) + dp;
-        if (this.level > 25) {
-            Button.prototype.press.call(this, e);
-            this.level = 0;
+        if (this.level >= threshold) {
+            if (this.level == threshold) this.send({
+                fire: e
+            });
+            if (this.opts.repeat) this.level = 0;
         }
-        this.elem.style({
-            opacity: 1 - this.level / 25
-        });
+        Button.do('style', this, this.level / threshold);
         super.move(deltas, e, ...rest);
     }
-    send(msg) {
-        if (msg.fire) Button.prototype.press.call(this, msg.fire);
-        super.send(msg);
+    send(msg, ...rest) {
+        if (msg.fire) Button.do('press', this, msg.fire);
+        super.send(msg, ...rest);
     }
     free(...rest) {
-        this.level = 0;
-        this.elem.style({
-            opacity: null
-        });
+        Button.do('style', this, this.level = undefined);
         super.free(...rest);
+    }
+    style(spectrum) {
+        if (spectrum === undefined) {
+            this.elem.style({
+                opacity: null
+            });
+        } else {
+            this.elem.style({
+                opacity: 1 - spectrum
+            });
+        }
     }
     async press(e) {
         const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
@@ -1648,7 +1664,6 @@ class Button extends Component {
         this.elem.addClass('pressed');
         if (f instanceof Function) {
             try {
-                await new Promise((ok)=>setTimeout(ok, hold));
                 await f(undefined, e);
             } catch (err) {
                 console.error(err);
