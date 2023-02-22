@@ -1675,8 +1675,8 @@ class Button extends Component {
 class TextButton extends Component.combo(Text, Button) {
 }
 class Spring extends Component {
-    dx = 0;
-    dy = 0;
+    dx;
+    dy;
     anim;
     move(delta, ...rest) {
         const { lock , kx , ky , lx , ly , tx , ty , ...fns } = up({
@@ -1691,22 +1691,22 @@ class Spring extends Component {
             if (lock && this.grip) return;
             if (mx > tx) dx /= kx * log(mx + 1) || 1;
             if (my > ty) dy /= ky * log(my + 1) || 1;
-            this.dx -= dx;
-            this.dy -= dy;
+            this.dx = (this.dx || 0) - dx;
+            this.dy = (this.dy || 0) - dy;
             return super.move([
                 dx,
                 dy
             ], ...rest);
         });
         const [dx, dy] = delta;
-        this.dx += lx * dx;
-        this.dy += ly * dy;
+        this.dx = (this.dx || 0) + lx * dx;
+        this.dy = (this.dy || 0) + ly * dy;
         fns.stretch?.call(this);
         if (!this.anim) {
             fns.perturb?.call(this);
             this.anim = this.elem.animate(()=>{
-                const dx = this.dx, dy = this.dy, mx = abs(dx), my = abs(dy);
-                const more = restore.call(this, dx, dy, mx, my) || this.dx || this.dy || this.grip;
+                const dx = this.dx || 0, dy = this.dy || 0, mx = abs(dx), my = abs(dy);
+                const more = restore.call(this, dx, dy, mx, my) || dx || dy || this.grip;
                 if (!more) {
                     this.anim = null;
                     fns.balance?.call(this);
