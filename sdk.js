@@ -995,6 +995,10 @@ function box(x, y, w, h) {
     });
 }
 class Box {
+    x;
+    y;
+    w;
+    h;
     constructor(d = {}, e){
         this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0);
         this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0);
@@ -1094,6 +1098,15 @@ class Box {
         return this.grid(function(acc, box) {
             return acc.push(box), acc;
         }, [], opts);
+    }
+    absorb(x, y) {
+        const w = x - this.x, h = y - this.y;
+        return new Box({
+            x: w < 0 ? x + w : x,
+            y: h < 0 ? y + h : y,
+            w: abs(w),
+            h: abs(h)
+        });
     }
     align(box, ax, ay) {
         const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;
@@ -1290,6 +1303,43 @@ class RGB {
         });
     }
 }
+export { abs as abs };
+export { log as log };
+export { min as min };
+export { max as max };
+export { Rt2 as Rt2 };
+export { Inf as Inf };
+export { add as add };
+export { dfn as dfn };
+export { fnt as fnt };
+export { get as get };
+export { set as set };
+export { pre as pre };
+export { pop as pop };
+export { pow as pow };
+export { sgn as sgn };
+export { clip as clip };
+export { each as each };
+export { map as map };
+export { up as up };
+export { noop as noop };
+export { randInt as randInt };
+export { trig as trig };
+export { units as units };
+export { Q as Q };
+export { path as path };
+export { P as P };
+export { SVGTransform as SVGTransform };
+export { $ as $ };
+export { elem as elem };
+export { svg as svg };
+export { wrap as wrap };
+export { Elem as Elem };
+export { SVGElem as SVGElem };
+export { box as box };
+export { Box as Box };
+export { rgb as rgb };
+export { RGB as RGB };
 const mod = {
     abs: abs,
     log: log,

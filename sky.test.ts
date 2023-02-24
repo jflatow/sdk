@@ -28,3 +28,9 @@ Deno.test('box points', async () => {
   assertEquals(box.right, 101);
   assertEquals(box.bottom, 21);
 });
+
+Deno.test('box to', async () => {
+  const box = Sky.box(1, 1, 100, 20);
+  assertEquals(box.to(10, 10), Sky.box(1, 1, 9, 9));
+  assertEquals(box.to(0, 0), Sky.box(0, 0, 1, 1));
+});

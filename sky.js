@@ -995,6 +995,10 @@ function box(x, y, w, h) {
     });
 }
 class Box {
+    x;
+    y;
+    w;
+    h;
     constructor(d = {}, e){
         this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0);
         this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0);
@@ -1094,6 +1098,15 @@ class Box {
         return this.grid(function(acc, box) {
             return acc.push(box), acc;
         }, [], opts);
+    }
+    absorb(x, y) {
+        const w = x - this.x, h = y - this.y;
+        return new Box({
+            x: w < 0 ? x + w : x,
+            y: h < 0 ? y + h : y,
+            w: abs(w),
+            h: abs(h)
+        });
     }
     align(box, ax, ay) {
         const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;

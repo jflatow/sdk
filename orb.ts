@@ -1,6 +1,6 @@
-import { Box, Elem, abs, up } from './sky.ts';
+import { Box, Elem, Event, abs, up } from './sky.ts';
 
-export type Event = any;
+export type { Event };
 export type Func = (...args: any[]) => any;
 
 export type GrabFn = (...args: any[]) => void;
@@ -99,6 +99,10 @@ export class Transform<Opts> extends Orb {
 
 // XXX styles? default init? added to what?
 //  I think cool to just compose default style 'sheet'
+//   bc where would you add it? to parent? new style sheet?
+//    then its like for every instance
+//  but begs the question, how to collect and when/where to add?
+//   imagine should be part of sdk but some sort of frame/layer above
 export class Component<Opts> extends Transform<Opts> {
   elem: Elem;
   subs?: Component<any>[];
@@ -117,6 +121,11 @@ export class Component<Opts> extends Transform<Opts> {
   static quick<Opts>(elem: Elem, opts?: Opts) {
     return new this(elem, undefined, opts);
   }
+
+  // XXX
+  // static styles() {
+  //   return {}; // XXX hm make sense?
+  // }
 
   init() {
     // override to add implicit gestures, etc. on construction

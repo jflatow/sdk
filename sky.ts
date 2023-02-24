@@ -25,7 +25,7 @@ export const trig = {
   polar: function (r, a) { return [r * trig.cos(a), r * trig.sin(a)] }
 }
 
-export function units(o, u) {
+export function units(o, u?) {
   const t = {}
   for (const k in o)
     t[k] = Q.unify(k, o[k], u)
@@ -167,6 +167,8 @@ export const P: any = up(path, {
     }
   })
 
+export interface Point { x: number, y: number };
+
 export const SVGTransform = window.SVGTransform;
 export interface Transformation {
   matrix?: number[];
@@ -188,6 +190,9 @@ export function wrap(node) {
       default: return new Elem(node)
     }
 }
+
+export type Event = Event;
+export type Node = Node;
 
 export class Elem {
   static get xml() { return "http://www.w3.org/XML/1998/namespace" }
@@ -226,6 +231,10 @@ export class Elem {
     while (n.firstChild)
       n.removeChild(n.firstChild)
     return this;
+  }
+
+  duplicate(p?, deep = true) {
+    return wrap(this.node.cloneNode(deep)).addTo(p ?? this.parent());
   }
 
   order(k?) {
@@ -521,23 +530,23 @@ export class Elem {
     return this.unique('.' + cls, (p) => p.g({class: cls}))
   }
 
-  icon(href, w, h, u) {
+  icon(href, w, h, u?) {
     return this.svg({class: 'icon'}).icon(href).parent().size(w, h, u)
   }
 
-  image(href, w, h, u) {
+  image(href, w, h, u?) {
     return this.child('img', {class: 'image'}).attrs({src: href}).size(w, h, u)
   }
 
-  circle(cx, cy, r, u) {
+  circle(cx, cy, r, u?) {
     return this.div({class: 'circle'}).xywh(cx - r, cy - r, 2 * r, 2 * r, u).style(Q({borderRadius: r}, u))
   }
 
-  ellipse(cx, cy, rx, ry, u) {
+  ellipse(cx, cy, rx, ry, u?) {
     return this.div({class: 'ellipse'}).xywh(cx - rx, cy - ry, 2 * rx, 2 * ry, u).style({borderRadius: Q.unify('borderRadius', [rx, ry], u).join(' / ')})
   }
 
-  rect(x, y, w, h, u) {
+  rect(x, y, w, h, u?) {
     return this.div({class: 'rect'}).xywh(x, y, w, h, u)
   }
 
@@ -545,41 +554,41 @@ export class Elem {
     return this.span({class: 'text'}).txt(text)
   }
 
-  svgX(box, u) {
+  svgX(box, u?) {
     return this.svg({viewBox: box}).embox(box, u)
   }
 
-  iconX(box, href, u) {
+  iconX(box, href, u?) {
     const {x, y, w, h} = box || this.bbox()
     return this.icon(href, w, h, u).place(x, y, u)
   }
 
-  imageX(box, href, u) {
+  imageX(box, href, u?) {
     const {x, y, w, h} = box || this.bbox()
     return this.image(x, y, w, h, href, u)
   }
 
-  circleX(box, p, big, u) {
+  circleX(box, p, big, u?) {
     const o = big ? max : min;
     const {midX, midY, w, h} = box || this.bbox()
     return this.circle(midX, midY, dfn(p, 1) * o(w, h) / 2, u)
   }
 
-  ellipseX(box, px, py, u) {
+  ellipseX(box, px, py, u?) {
     const {midX, midY, w, h} = box || this.bbox()
     return this.ellipse(midX, midY, dfn(px, 1) * w / 2, dfn(py, 1) * h / 2, u)
   }
 
-  rectX(box, u) {
+  rectX(box, u?) {
     const {x, y, w, h} = box || this.bbox()
     return this.rect(x, y, w, h, u)
   }
 
-  textX(box, text, ax, ay, u) {
+  textX(box, text, ax, ay, u?) {
     return this.text(text).align(box || this.bbox(), ax, ay, u).anchor(ax, ay)
   }
 
-  flex(ps, hzn, u) {
+  flex(ps, hzn, u?) {
     return (ps || []).reduce((r, p) => {
       let f, q;
       if (p == 'fit' || p == null)
@@ -592,49 +601,54 @@ export class Elem {
     }, this.style({display: 'flex', flexDirection: hzn ? 'row' : 'column'}))
   }
 
-  row(ps, u) {
+  row(ps, u?) {
     return this.g({class: 'row'}).flex(ps, true, u)
   }
 
-  col(ps, u) {
+  col(ps, u?) {
     return this.g({class: 'col'}).flex(ps, false, u)
   }
 
-  bbox(fixed) {
+  bbox(fixed?) {
     const box = new Box(this.node.getBoundingClientRect())
     return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset)
   }
 
-  wh(w, h, u) {
+  pos(e, rel?) {
+    const box = rel === true ? this.bbox() : rel;
+    return {x: e.pageX - (box?.x ?? 0), y: e.pageY - (box?.y ?? 0)};
+  }
+
+  wh(w, h, u?) {
     return this.style(Q({width: w, height: h}, u))
   }
 
-  xy(x, y, u) {
+  xy(x, y, u?) {
     return this.style(Q({left: x, top: y, position: 'absolute'}, u))
   }
 
-  xywh(x, y, w, h, u) {
+  xywh(x, y, w, h, u?) {
     return this.style(Q({left: x, top: y, width: w, height: h, position: 'absolute'}, u))
   }
 
-  size(w, h, u) {
+  size(w, h, u?) {
     return this.parent().wh.call(this, w, h, u)
   }
 
-  place(x, y, u) {
+  place(x, y, u?) {
     return this.parent().xy.call(this, x, y, u)
   }
 
-  cover(x, y, w, h, u) {
+  cover(x, y, w, h, u?) {
     return this.parent().xywh.call(this, x, y, w, h, u)
   }
 
-  align(box, ax, ay, u) {
+  align(box, ax, ay, u?) {
     const {x, y} = new Box().align(box, ax, ay)
     return this.place(x, y, u)
   }
 
-  embox(box, u) {
+  embox(box, u?) {
     const {x, y, w, h} = box;
     return this.cover(x, y, w, h, u)
   }
@@ -645,7 +659,7 @@ export class Elem {
     return this.transform({translate: [a + '%', b + '%']})
   }
 
-  hang(ax, ay, u) {
+  hang(ax, ay, u?) {
     return this.align(box(0, 0, 100, 100), ax, ay, up({top: '%', left: '%'}, u)).anchor(ax, ay)
   }
 
@@ -976,6 +990,11 @@ export class SVGElem extends Elem {
 export function box(x?, y?, w?, h?) { return new Box({x: x, y: y, w: w, h: h}) }
 
 export class Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+
   constructor(d = {}, e?: boolean) {
     this.x = dfn(dfn(d.x, d.left), e ? -Inf : 0)
     this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0)
@@ -1035,6 +1054,16 @@ export class Box {
 
   split(opts) {
     return this.grid(function (acc, box) { return acc.push(box), acc }, [], opts)
+  }
+
+  to(x, y) {
+    const w = x - this.x, h = y - this.y;
+    return new Box({
+      x: w < 0 ? this.x + w : this.x,
+      y: h < 0 ? this.y + h : this.y,
+      w: abs(w),
+      h: abs(h),
+    });
   }
 
   align(box, ax, ay) {
