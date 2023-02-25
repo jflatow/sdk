@@ -122,10 +122,9 @@ export class Component<Opts> extends Transform<Opts> {
     return new this(elem, undefined, opts);
   }
 
-  // XXX
-  // static styles() {
-  //   return {}; // XXX hm make sense?
-  // }
+  static styles() {
+    return {}; // XXX hm make sense? where called?
+  }
 
   init() {
     // override to add implicit gestures, etc. on construction

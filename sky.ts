@@ -246,7 +246,7 @@ export class Elem {
     return this;
   }
 
-  remove(b) {
+  remove(b?) {
     const n = this.node, p = n.parentNode;
     if (p && dfn(b, true))
       p.removeChild(n)
@@ -413,7 +413,7 @@ export class Elem {
       try {
         sheet.insertRule(`${selector} { ${rec(selector, rules[selector])} }`, i++)
       } catch (e) { console.error(e) }
-    return i;
+    return this;
   }
 
   animate(fun, n?) {
@@ -1056,16 +1056,6 @@ export class Box {
     return this.grid(function (acc, box) { return acc.push(box), acc }, [], opts)
   }
 
-  to(x, y) {
-    const w = x - this.x, h = y - this.y;
-    return new Box({
-      x: w < 0 ? this.x + w : this.x,
-      y: h < 0 ? this.y + h : this.y,
-      w: abs(w),
-      h: abs(h),
-    });
-  }
-
   align(box, ax, ay) {
     const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;
     const x = box.midX + nx * box.w - ox * this.w;
@@ -1077,8 +1067,17 @@ export class Box {
     return this.copy({x: (cx || 0) - this.w / 2, y: (cy || 0) - this.h / 2})
   }
 
+  to(x, y) {
+    return this.copy({w: x - this.x, h: y - this.y})
+  }
+
   xy(x, y) {
     return this.copy({x: x || 0, y: y || 0})
+  }
+
+  normalize() {
+    const { x, y, w, h } = this;
+    return this.copy({x: w < 0 ? x + w : x, y: h < 0 ? y + h : y, w: abs(w), h: abs(h)})
   }
 
   scale(a, b) {
@@ -1135,6 +1134,12 @@ export class Box {
     const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height)
     const { x, y, w, h } = this;
     return x == dfn(o.x, 0) && y == dfn(o.y, 0) && w == dfn(ow, 0) && h == dfn(oh, 0)
+  }
+
+  overlaps(o_) {
+    const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height), ox = dfn(o.x, 0), oy = dfn(o.y, 0)
+    const { x, y, w, h } = this;
+    return ox <= x + w && ox + ow >= x && oy <= y + h && oy + oh >= y;
   }
 
   toString() {

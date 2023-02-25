@@ -32,5 +32,18 @@ Deno.test('box points', async () => {
 Deno.test('box to', async () => {
   const box = Sky.box(1, 1, 100, 20);
   assertEquals(box.to(10, 10), Sky.box(1, 1, 9, 9));
-  assertEquals(box.to(0, 0), Sky.box(0, 0, 1, 1));
+  assertEquals(box.to(0, 0), Sky.box(1, 1, -1, -1));
+  assertEquals(box.to(-100, -99), Sky.box(1, 1, -101, -100));
+});
+
+Deno.test('box normalize', async () => {
+  const box = Sky.box(1, 1, 100, -20);
+  assertEquals(box.normalize(), Sky.box(1, -19, 100, 20));
+});
+
+Deno.test('box overlaps', async () => {
+  const box = Sky.box(1, 1, 100, 20);
+  assertEquals(box.overlaps(Sky.box(1, 1, 9, 9)), true);
+  assertEquals(box.overlaps(Sky.box(1, 1, -1, -1)), false);
+  assertEquals(box.overlaps(Sky.box(1, 1, -101, -100)), false);
 });
