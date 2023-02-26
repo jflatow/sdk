@@ -1,18 +1,16 @@
 import { Elem, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike } from '../orb.ts';
 
-export interface KeyboardOpts { prevent?: boolean };
+export interface KeypressOpts { gain?: number, prevent?: boolean };
 
-export function keyboard(elem: Elem, jack_: OrbLike, opts_: KeyboardOpts = {}) {
+export function keypress(elem: Elem, jack_: OrbLike, opts_: KeypressOpts = {}) {
   const jack = Orb.from(jack_);
-  const opts = up({}, opts_);
+  const opts = up({ gain: 5 }, opts_);
   return elem.on(Events.keydown, (e: Event) => {
-    // XXX actually like keypress could be cool (maybe even rename)
-    //  do gain/every -> move on repeat, w options
-    //   so press and hold acts like mouse press
     if (!e.repeat)
       jack.grab(e);
-    jack.send(e.key, e);
+    else
+      jack.move([opts.gain, e.location], e);
     if (opts.prevent)
       e.preventDefault();
     if (!e.repeat)

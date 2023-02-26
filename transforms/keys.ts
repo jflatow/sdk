@@ -1,23 +1,26 @@
 import { Event, up } from '../sky.ts';
-import { KeyMap, Transform } from '../orb.ts';
+import { KeyMap, Orb, Transform } from '../orb.ts';
 // XXX could be a Component, on an element that self binds keyboard?
 
 export interface KeysOpts { map?: KeyMap };
 
 export class Keys extends Transform<KeysOpts> {
-  declare curKeyMap: KeyMap;
+  declare curKeyMap: KeyMap; // NB: avoid JS re-initializing undefined
+  declare selected?: Orb; // XXX selections...
 
-  move(deltas: number[], ...rest: any[]) {
-    const [dx, dy] = deltas;
-    // XXX
-    console.log('xxxx move')
-    super.move(deltas, ...rest);
+  grab(e: Event, ...rest: any[]) {
+    Keys.do('captureInput', this, KeyCoder.characterize(e));
+    super.grab(e, ...rest);
   }
 
-  send(k: string, e: Event, ...rest: any[]) {
-    console.log('xxxx send', k, e, ...rest, this.curKeyMap)
-    Keys.do('captureInput', this, KeyCoder.characterize(e));
-    super.send(k, e, ...rest);
+  move(deltas: number[], e: Event, ...rest: any[]) {
+    this.selected?.move(deltas, e, ...rest);
+    super.move(deltas, e, ...rest);
+  }
+
+  free(e: Event, ...rest: any[]) {
+    this.selected?.free(e, ...rest);
+    super.free(e, ...rest);
   }
 
   setOpts(opts_: KeysOpts): KeysOpts {
@@ -26,20 +29,21 @@ export class Keys extends Transform<KeysOpts> {
     return opts;
   }
 
-  // XXX from Layer
   captureInput(input: Input) {
     if (input.special) {
       const next = this.curKeyMap[input.special] || this.curKeyMap.default;
-      if (next instanceof Function) {
+      if (next instanceof Function) { // XXX different than Orb.from a fn...
         if (input.event && this.curKeyMap[input.special])
           input.event.preventDefault();
-        this.resetKeyMap(input); // XXX Keys.do all these?
+        Keys.do('resetKeyMap', this, input);
         return next.call(this, input.chars, input.event);
+      } else if (next instanceof Orb) {
+        this.selected = next;
       } else if (next) {
-        this.stepKeyMap(next, input);
+        Keys.do('stepKeyMap', this, next, input);
       } else {
         console.debug('special input missed key map', input, this);
-        this.resetKeyMap(input);
+        Keys.do('resetKeyMap', this, input);
       }
     } else if (input.chars) {
       for (let i = 0; i < input.chars.length; i++) {
@@ -48,13 +52,15 @@ export class Keys extends Transform<KeysOpts> {
         if (next instanceof Function) {
           if (input.event && this.curKeyMap[char])
             input.event.preventDefault();
-          this.resetKeyMap(input);
+          Keys.do('resetKeyMap', this, input);
           return next.call(this, input.chars.slice(i), input.event);
+        } else if (next instanceof Orb) {
+          this.selected = next;
         } else if (next) {
-          this.stepKeyMap(next, input);
+          Keys.do('stepKeyMap', this, next, input);
         } else {
           console.debug('input missed key map', input, this);
-          this.resetKeyMap(input);
+          Keys.do('resetKeyMap', this, input);
         }
       }
     } else if (input.chars === '') {
@@ -66,26 +72,13 @@ export class Keys extends Transform<KeysOpts> {
 
   resetKeyMap(input: Input = {}) {
     this.curKeyMap = this.opts.map!;
+    this.selected = undefined;
   }
 
   stepKeyMap(next: KeyMap, input: Input) {
     this.curKeyMap = next;
   }
 }
-
-// XXX a transform?
-//  well the thing in layers w/ top and cur
-
-// XXX
-//  body.on('keydown', this.captureKey.bind(this));
-//  body.on('paste', this.capturePaste.bind(this));
-// XXX dont want to encroach on layers too much
-//  but prob separating out the input handling part
-// XXX actually yeah keys should prob be able to capture more than action
-//  if 'C-a': Component
-//   would be cool to grab it on keydown
-//    add normal move pressure?
-//     fire when?
 
 export interface Input {
   chars?: string;

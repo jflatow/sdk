@@ -63,16 +63,17 @@
       Gestures.swipe(paper, new Spring(text4.elem, new Wagon(text4.elem)));
       Gestures.tap(paper, new Wagon(paper));
 
-      const action1 = (...args) => console.log('xxxx action 1', ...args);
-      const action2 = (...args) => console.log('xxxx action 2', ...args);
-      Gestures.keyboard(keyed, Keys.sink({
+      const action1 = (...args) => console.log('action 1', ...args);
+      const action2 = (...args) => console.log('action 2', ...args);
+      Gestures.keypress(keyed, Keys.sink({
         map: {
           'A': {
             'B': action1,
-            'C': button1,
+            'C': button1, // XXX not really triggerable?
           },
-          'C-b': action2,
+          'C-b': action2, // XXX tots diff path, weird?
           'C-c': button2,
+          'C-d': button1,
         }
       }));
 
