@@ -246,6 +246,9 @@ class Elem {
         while(n.firstChild)n.removeChild(n.firstChild);
         return this;
     }
+    duplicate(p, deep = true) {
+        return wrap(this.node.cloneNode(deep)).addTo(p ?? this.parent());
+    }
     order(k) {
         const n = this.node, p = n.parentNode;
         const c = [].filter.call(p.childNodes, (o)=>o !== n), C = c.length;
@@ -406,7 +409,7 @@ class Elem {
         } catch (e) {
             console.error(e);
         }
-        return i;
+        return this;
     }
     animate(fun, n) {
         let self = this, i = 0;
@@ -599,6 +602,13 @@ class Elem {
     bbox(fixed) {
         const box = new Box(this.node.getBoundingClientRect());
         return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset);
+    }
+    pos(e, rel) {
+        const box = rel === true ? this.bbox() : rel;
+        return {
+            x: e.pageX - (box?.x ?? 0),
+            y: e.pageY - (box?.y ?? 0)
+        };
     }
     wh(w, h, u) {
         return this.style(Q({
@@ -1099,15 +1109,6 @@ class Box {
             return acc.push(box), acc;
         }, [], opts);
     }
-    absorb(x, y) {
-        const w = x - this.x, h = y - this.y;
-        return new Box({
-            x: w < 0 ? x + w : x,
-            y: h < 0 ? y + h : y,
-            w: abs(w),
-            h: abs(h)
-        });
-    }
     align(box, ax, ay) {
         const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;
         const x = box.midX + nx * box.w - ox * this.w;
@@ -1123,10 +1124,25 @@ class Box {
             y: (cy || 0) - this.h / 2
         });
     }
+    to(x, y) {
+        return this.copy({
+            w: x - this.x,
+            h: y - this.y
+        });
+    }
     xy(x, y) {
         return this.copy({
             x: x || 0,
             y: y || 0
+        });
+    }
+    normalize() {
+        const { x , y , w , h  } = this;
+        return this.copy({
+            x: w < 0 ? x + w : x,
+            y: h < 0 ? y + h : y,
+            w: abs(w),
+            h: abs(h)
         });
     }
     scale(a, b) {
@@ -1199,6 +1215,11 @@ class Box {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
         const { x , y , w , h  } = this;
         return x == dfn(o.x, 0) && y == dfn(o.y, 0) && w == dfn(ow, 0) && h == dfn(oh, 0);
+    }
+    overlaps(o_) {
+        const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height), ox = dfn(o.x, 0), oy = dfn(o.y, 0);
+        const { x , y , w , h  } = this;
+        return ox <= x + w && ox + ow >= x && oy <= y + h && oy + oh >= y;
     }
     toString() {
         const { x , y , w , h  } = this;
@@ -1437,6 +1458,9 @@ class Transform extends Orb {
         this.jack = Orb.from(jack);
         this.opts = this.setOpts(opts);
     }
+    static sink(opts) {
+        return new this(undefined, opts);
+    }
     setOpts(opts) {
         if (!this.halt) {
             this.opts = opts;
@@ -1460,6 +1484,9 @@ class Component extends Transform {
     }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
+    }
+    static styles() {
+        return {};
     }
     init() {}
     render() {
@@ -1504,6 +1531,8 @@ function combo(a, b) {
     return c;
 }
 class Events {
+    static keydown = 'keydown';
+    static keyup = 'keyup';
     static pointerup = 'pointerup';
     static pointerdown = 'pointerdown';
     static pointermove = 'pointermove';
@@ -1519,6 +1548,19 @@ export { Transform as Transform };
 export { Component as Component };
 export { combo as combo };
 export { Events as Events };
+function keyboard(elem, jack_, opts_ = {}) {
+    const jack = Orb.from(jack_);
+    const opts = up({}, opts_);
+    return elem.on(Events.keydown, (e)=>{
+        if (!e.repeat) jack.grab(e);
+        jack.send(e.key, e);
+        if (opts.prevent) e.preventDefault();
+        if (!e.repeat) elem.once(Events.keyup, (e)=>{
+            jack.free(e);
+            if (opts.prevent) e.preventDefault();
+        });
+    });
+}
 function press(elem, jack_, opts_ = {}) {
     const jack = Orb.from(jack_);
     const opts = up({
@@ -1645,6 +1687,7 @@ function dbltap(elem, jack_, opts_ = {}) {
     });
 }
 const mod1 = {
+    keyboard,
     press,
     scroll,
     swipe,
@@ -1790,8 +1833,8 @@ const mod2 = {
     Wagon
 };
 class Amp extends Transform {
-    move(delta, ...rest) {
-        const [dx, dy] = delta;
+    move(deltas, ...rest) {
+        const [dx, dy] = deltas;
         const opts = this.opts;
         const ax = opts.ax ?? 1, ay = opts.ay ?? 1;
         const kx = opts.kx ?? 1, ky = opts.ky ?? 1;
@@ -1801,9 +1844,122 @@ class Amp extends Transform {
         ], ...rest);
     }
 }
+class Keys extends Transform {
+    move(deltas, ...rest) {
+        const [dx, dy] = deltas;
+        console.log('xxxx move');
+        super.move(deltas, ...rest);
+    }
+    send(k, e, ...rest) {
+        console.log('xxxx send', k, e, ...rest, this.curKeyMap);
+        Keys.do('captureInput', this, KeyCoder.characterize(e));
+        super.send(k, e, ...rest);
+    }
+    setOpts(opts_) {
+        const opts = super.setOpts(up({
+            map: {}
+        }, opts_));
+        Keys.do('resetKeyMap', this);
+        return opts;
+    }
+    captureInput(input) {
+        if (input.special) {
+            const next = this.curKeyMap[input.special] || this.curKeyMap.default;
+            if (next instanceof Function) {
+                if (input.event && this.curKeyMap[input.special]) input.event.preventDefault();
+                this.resetKeyMap(input);
+                return next.call(this, input.chars, input.event);
+            } else if (next) {
+                this.stepKeyMap(next, input);
+            } else {
+                console.debug('special input missed key map', input, this);
+                this.resetKeyMap(input);
+            }
+        } else if (input.chars) {
+            for(let i = 0; i < input.chars.length; i++){
+                const __char = input.chars[i];
+                const next1 = this.curKeyMap[__char] || this.curKeyMap.default;
+                if (next1 instanceof Function) {
+                    if (input.event && this.curKeyMap[__char]) input.event.preventDefault();
+                    this.resetKeyMap(input);
+                    return next1.call(this, input.chars.slice(i), input.event);
+                } else if (next1) {
+                    this.stepKeyMap(next1, input);
+                } else {
+                    console.debug('input missed key map', input, this);
+                    this.resetKeyMap(input);
+                }
+            }
+        } else if (input.chars === '') {
+            console.debug('empty input', input, this);
+        } else {
+            console.warn('unexpected input', input, this);
+        }
+    }
+    resetKeyMap(input = {}) {
+        this.curKeyMap = this.opts.map;
+    }
+    stepKeyMap(next, input) {
+        this.curKeyMap = next;
+    }
+}
+class KeyCoder {
+    static characterize(event) {
+        const modifiers = this.modifiers(event);
+        const key = this.keyChar(event);
+        const special = this.specialChar(event);
+        if (modifiers && (special || key)) return {
+            special: modifiers + (special || key),
+            event
+        };
+        else if (special) return {
+            special,
+            event
+        };
+        else return {
+            chars: key,
+            event
+        };
+    }
+    static modifiers(event) {
+        let modifiers = '';
+        if (event.metaKey) modifiers += '⌘-';
+        if (event.ctrlKey) modifiers += 'C-';
+        if (event.altKey) modifiers += 'M-';
+        return modifiers;
+    }
+    static keyChar(event) {
+        if (event.altKey && event.code.startsWith('Alt') || event.ctrlKey && event.code.startsWith('Control') || event.metaKey && event.code.startsWith('Meta') || event.shiftKey && event.code.startsWith('Shift')) return '';
+        return event.key || '';
+    }
+    static specialChar(event) {
+        switch(event.code){
+            case 'ArrowLeft':
+                return 'left';
+            case 'ArrowUp':
+                return 'up';
+            case 'ArrowRight':
+                return 'right';
+            case 'ArrowDown':
+                return 'down';
+            case 'Backspace':
+                return 'DEL';
+            case 'Delete':
+                return 'DEL';
+            case 'Enter':
+                return 'RET';
+            case 'Escape':
+                return 'ESC';
+            case 'Space':
+                return 'SPC';
+            case 'Tab':
+                return 'TAB';
+        }
+    }
+}
 class Loop extends Transform {
-    move(delta, cur, ...rest) {
-        const [dx, dy] = delta;
+    move(deltas, cur, ...rest) {
+        const [dx, dy] = deltas;
         const off = cur.translate || [
             0,
             0
@@ -1836,11 +1992,13 @@ class Loop extends Transform {
             ox,
             oy
         ];
-        super.move(delta, cur, ...rest);
+        super.move(deltas, cur, ...rest);
     }
 }
 const mod3 = {
     Amp,
+    Keys,
+    KeyCoder,
     Loop
 };
 export { mod as Sky };

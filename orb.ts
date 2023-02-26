@@ -85,6 +85,10 @@ export class Transform<Opts> extends Orb {
     this.opts = this.setOpts(opts);
   }
 
+  static sink<Opts>(opts?: Opts) {
+    return new this(undefined, opts);
+  }
+
   setOpts(opts: Opts): Opts {
     // transition this.opts -> opts
     //  returns whatever we *actually* set
@@ -170,10 +174,19 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
 }
 
 export class Events {
+  static readonly keydown = 'keydown';
+  static readonly keyup = 'keyup';
+
   static readonly pointerup = 'pointerup';
   static readonly pointerdown = 'pointerdown';
   static readonly pointermove = 'pointermove';
   static readonly pointerexit = [this.pointerup, 'pointercancel'].join(' ')
 
   static readonly scrollwheel = 'mousewheel';
+}
+
+export type Action<T> = (payload?: T, event?: Event) => Promise<any>;
+
+export interface KeyMap {
+  [ key: string ]: KeyMap | Action<string>;
 }

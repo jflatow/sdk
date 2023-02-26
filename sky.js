@@ -246,6 +246,9 @@ class Elem {
         while(n.firstChild)n.removeChild(n.firstChild);
         return this;
     }
+    duplicate(p, deep = true) {
+        return wrap(this.node.cloneNode(deep)).addTo(p ?? this.parent());
+    }
     order(k) {
         const n = this.node, p = n.parentNode;
         const c = [].filter.call(p.childNodes, (o)=>o !== n), C = c.length;
@@ -406,7 +409,7 @@ class Elem {
         } catch (e) {
             console.error(e);
         }
-        return i;
+        return this;
     }
     animate(fun, n) {
         let self = this, i = 0;
@@ -599,6 +602,13 @@ class Elem {
     bbox(fixed) {
         const box = new Box(this.node.getBoundingClientRect());
         return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset);
+    }
+    pos(e, rel) {
+        const box = rel === true ? this.bbox() : rel;
+        return {
+            x: e.pageX - (box?.x ?? 0),
+            y: e.pageY - (box?.y ?? 0)
+        };
     }
     wh(w, h, u) {
         return this.style(Q({
@@ -1099,15 +1109,6 @@ class Box {
             return acc.push(box), acc;
         }, [], opts);
     }
-    absorb(x, y) {
-        const w = x - this.x, h = y - this.y;
-        return new Box({
-            x: w < 0 ? x + w : x,
-            y: h < 0 ? y + h : y,
-            w: abs(w),
-            h: abs(h)
-        });
-    }
     align(box, ax, ay) {
         const nx = (ax || 0) / 2, ny = (ay || 0) / 2, ox = nx + .5, oy = ny + .5;
         const x = box.midX + nx * box.w - ox * this.w;
@@ -1123,10 +1124,25 @@ class Box {
             y: (cy || 0) - this.h / 2
         });
     }
+    to(x, y) {
+        return this.copy({
+            w: x - this.x,
+            h: y - this.y
+        });
+    }
     xy(x, y) {
         return this.copy({
             x: x || 0,
             y: y || 0
+        });
+    }
+    normalize() {
+        const { x , y , w , h  } = this;
+        return this.copy({
+            x: w < 0 ? x + w : x,
+            y: h < 0 ? y + h : y,
+            w: abs(w),
+            h: abs(h)
         });
     }
     scale(a, b) {
@@ -1199,6 +1215,11 @@ class Box {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
         const { x , y , w , h  } = this;
         return x == dfn(o.x, 0) && y == dfn(o.y, 0) && w == dfn(ow, 0) && h == dfn(oh, 0);
+    }
+    overlaps(o_) {
+        const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height), ox = dfn(o.x, 0), oy = dfn(o.y, 0);
+        const { x , y , w , h  } = this;
+        return ox <= x + w && ox + ow >= x && oy <= y + h && oy + oh >= y;
     }
     toString() {
         const { x , y , w , h  } = this;

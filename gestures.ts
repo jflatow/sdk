@@ -1,3 +1,4 @@
+export * from './gestures/keyboard.ts'; // XXX
 export * from './gestures/press.ts';
 export * from './gestures/scroll.ts';
 export * from './gestures/swipe.ts';

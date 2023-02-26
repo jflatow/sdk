@@ -236,6 +236,9 @@ class Transform extends Orb {
         this.jack = Orb.from(jack);
         this.opts = this.setOpts(opts);
     }
+    static sink(opts) {
+        return new this(undefined, opts);
+    }
     setOpts(opts) {
         if (!this.halt) {
             this.opts = opts;
@@ -259,6 +262,9 @@ class Component extends Transform {
     }
     static quick(elem, opts) {
         return new this(elem, undefined, opts);
+    }
+    static styles() {
+        return {};
     }
     init() {}
     render() {
@@ -303,6 +309,8 @@ function combo(a, b) {
     return c;
 }
 class Events {
+    static keydown = 'keydown';
+    static keyup = 'keyup';
     static pointerup = 'pointerup';
     static pointerdown = 'pointerdown';
     static pointermove = 'pointermove';

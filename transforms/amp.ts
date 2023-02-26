@@ -7,8 +7,8 @@ export type AmpOut = { delta: [dx: number, dy: number] };
 export type AmpMsgs = void;
 
 export class Amp extends Transform<AmpOpts> {
-  move(delta: number[], ...rest: any[]) {
-    const [dx, dy] = delta;
+  move(deltas: number[], ...rest: any[]) {
+    const [dx, dy] = deltas;
     const opts = this.opts;
     const ax = opts.ax ?? 1, ay = opts.ay ?? 1;
     const kx = opts.kx ?? 1, ky = opts.ky ?? 1;

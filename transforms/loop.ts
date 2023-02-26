@@ -4,8 +4,8 @@ import { Transform } from '../orb.ts';
 export interface LoopOpts { bbox?: any, wrap?: any };
 
 export class Loop extends Transform<LoopOpts> {
-  move(delta: number[], cur: Transformation, ...rest: any[]) {
-    const [dx, dy] = delta;
+  move(deltas: number[], cur: Transformation, ...rest: any[]) {
+    const [dx, dy] = deltas;
     const off = cur.translate || [0, 0];
     const bbox = new Box(this.opts.bbox || {}, true);
     const wrap = this.opts.wrap || noop;
@@ -34,6 +34,6 @@ export class Loop extends Transform<LoopOpts> {
       }
     }
     cur.translate = [ox, oy];
-    super.move(delta, cur, ...rest);
+    super.move(deltas, cur, ...rest);
   }
 }
