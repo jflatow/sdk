@@ -25,14 +25,12 @@
       const { Amp, Keys, Loop } = Transforms;
       const { Button, Spring, Text, TextButton, Wagon } = Components;
 
-      const paper = Sky.$('#paper');
+      const paper = Sky.$('#paper').attrs({ tabindex: 0 });
       const text1 = new Text(paper.div());
       const text2 = new Text(paper.div(), null);
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
       const text4 = Text.quick(paper.div(), { text: "Hello there" });
-      const keyed = paper.div({ tabindex: 0 }).txt("Keyed");
 
-      // XXX text button?
       const button1 = new TextButton(paper.div(), null, {
         app: { do_TextButton: () => console.log('do_TextButton', button1) }
       });
@@ -44,7 +42,7 @@
         send: (m) => console.log('send', m),
         free: (e) => console.log('free', button2, e),
       });
-      // XXX
+      // export
       window.button1 = button1;
       window.button2 = button2;
 
@@ -65,13 +63,13 @@
 
       const action1 = (...args) => console.log('action 1', ...args);
       const action2 = (...args) => console.log('action 2', ...args);
-      Gestures.keypress(keyed, Keys.sink({
+      Gestures.keypress(paper, Keys.sink({
         map: {
           'A': {
             'B': action1,
             'C': button1, // XXX not really triggerable?
           },
-          'C-b': action2, // XXX tots diff path, weird?
+          'C-b': action2,
           'C-c': button2,
           'C-d': button1,
         }

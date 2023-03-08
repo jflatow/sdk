@@ -1725,9 +1725,10 @@ class Button extends Component {
     }
     move(deltas, e, ...rest) {
         const [dp] = deltas, threshold = this.opts.threshold ?? 18;
-        this.level = (this.level || 0) + dp;
+        const last = this.level || 0;
+        this.level = last + dp;
         if (this.level >= threshold) {
-            if (this.level == threshold) this.send({
+            if (last < threshold) this.send({
                 fire: e
             });
             if (this.opts.repeat) this.level = 0;

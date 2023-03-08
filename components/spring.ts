@@ -9,8 +9,8 @@ export interface SpringOpts {
   restore?: any,
   stretch?: any,
   balance?: any,
-  perturb?: any
-};
+  perturb?: any,
+}
 
 export class Spring extends Component<SpringOpts> {
   dx?: number;
