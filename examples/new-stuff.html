@@ -29,7 +29,7 @@
       const text1 = new Text(paper.div());
       const text2 = new Text(paper.div(), null);
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
-      const text4 = Text.quick(paper.div(), { text: "Hello there" });
+      const text4 = Text.quick(paper, { text: "Hello there" });
 
       const button1 = new TextButton(paper.div(), null, {
         app: { do_TextButton: () => console.log('do_TextButton', button1) }
@@ -70,7 +70,7 @@
             'C': button1, // XXX not really triggerable?
           },
           'C-b': action2,
-          'C-c': button2,
+          'C-c': button2, // XXX no grab / double free not right? oh bc grab after first, free for each under thresh
           'C-d': button1,
         }
       }));

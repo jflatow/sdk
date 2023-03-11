@@ -26,7 +26,7 @@ export class Button extends Component<ButtonOpts> {
       const does = f();
       this.elem.style({ display: does ? null : 'none' }); // XXX keep? opt?
     }
-    super.render();
+    return super.render();
   }
 
   move(deltas: number[], e: Event, ...rest: any[]) {

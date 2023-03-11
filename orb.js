@@ -239,9 +239,12 @@ class Transform extends Orb {
     static sink(opts) {
         return new this(undefined, opts);
     }
+    defaultOpts() {
+        return {};
+    }
     setOpts(opts) {
         if (!this.halt) {
-            this.opts = opts;
+            this.opts = up(this.defaultOpts(), opts);
         }
         return this.opts;
     }
@@ -260,17 +263,23 @@ class Component extends Transform {
     static combo(a, b) {
         return combo(a, b);
     }
-    static quick(elem, opts) {
-        return new this(elem, undefined, opts);
+    static quick(root, opts) {
+        return new this(root.div(), undefined, opts);
     }
     static styles() {
         return {};
     }
-    init() {}
+    init() {
+        this.elem.addClass([
+            'component',
+            this.constructor.name
+        ]);
+    }
     render() {
         if (!this.halt) {
-            this.subs?.forEach((c)=>c.render());
+            this.subs.forEach((c)=>c.render());
         }
+        return this.elem;
     }
 }
 function combo(a, b) {

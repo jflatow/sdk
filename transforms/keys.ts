@@ -1,6 +1,7 @@
 import { Event, up } from '../sky.ts';
 import { KeyMap, Orb, Transform } from '../orb.ts';
 // XXX could be a Component, on an element that self binds keyboard?
+//  new KeyCapture(body, this)
 
 export interface KeysOpts { map?: KeyMap };
 

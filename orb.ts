@@ -89,13 +89,18 @@ export class Transform<Opts> extends Orb {
     return new this(undefined, opts);
   }
 
+  defaultOpts(): Opts {
+    // for convenience, can always override setOpts for performance
+    return {} as Opts;
+  }
+
   setOpts(opts: Opts): Opts {
     // transition this.opts -> opts
     //  returns whatever we *actually* set
     // subtypes can simply chain the new opts they handle
     //  and return super.setOpts(chain(opts)) or chain(super.setOpts(opts))
     if (!this.halt) {
-      this.opts = opts;
+      this.opts = up(this.defaultOpts() as object, opts);
     }
     return this.opts;
   }
@@ -109,7 +114,7 @@ export class Transform<Opts> extends Orb {
 //   imagine should be part of sdk but some sort of frame/layer above
 export class Component<Opts> extends Transform<Opts> {
   elem: Elem;
-  subs?: Component<any>[];
+  subs: Component<any>[];
 
   constructor(elem: Elem, jack?: Orb, opts?: Opts, impl = { elem }) {
     super(jack, opts, impl);
@@ -118,12 +123,12 @@ export class Component<Opts> extends Transform<Opts> {
     this.init();
   }
 
-  static combo(a: any, b: any): any {
+  static combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {
     return combo(a, b);
   }
 
-  static quick<Opts>(elem: Elem, opts?: Opts) {
-    return new this(elem, undefined, opts);
+  static quick<Opts>(root: Elem, opts?: Opts) {
+    return new this(root.div(), undefined, opts);
   }
 
   static styles() {
@@ -132,14 +137,17 @@ export class Component<Opts> extends Transform<Opts> {
 
   init() {
     // override to add implicit gestures, etc. on construction
+    //  remember to call super, typically
+    this.elem.addClass(['component', this.constructor.name]); // XXX
   }
 
-  render() {
+  render(): Elem {
     // override to propagate external state changes (to elem)
     //  remember to call super
     if (!this.halt) {
-      this.subs?.forEach(c => c.render());
+      this.subs.forEach(c => c.render());
     }
+    return this.elem;
   }
 }
 
@@ -158,7 +166,7 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
     }
 
     render() {
-      return this.callAll('render');
+      return this.callAll('render') as Elem;
     }
 
     setOpts(opts: A & B): A & B {
@@ -185,8 +193,8 @@ export class Events {
   static readonly scrollwheel = 'mousewheel';
 }
 
-export type Action<T> = (payload?: T, event?: Event) => Promise<any>;
+export type Action<T = string> = (payload?: T, event?: Event) => Promise<any>;
 
 export interface KeyMap {
-  [ key: string ]: KeyMap | Action<string>;
+  [ key: string ]: KeyMap | Action;
 }
