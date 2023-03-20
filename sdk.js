@@ -1515,11 +1515,23 @@ function combo(a, b) {
             }), ...args);
             return r;
         }
+        callFold(method, p = {}, fun = up) {
+            const q = fun(p, b.prototype[method]?.call(up(this, {
+                halt: true
+            })));
+            const r = fun(q, a.prototype[method]?.call(up(this, {
+                halt: false
+            })));
+            return r;
+        }
         init() {
             return this.callAll('init');
         }
         render() {
             return this.callAll('render');
+        }
+        defaultOpts() {
+            return this.callFold('defaultOpts');
         }
         setOpts(opts) {
             return this.callAll('setOpts', opts);

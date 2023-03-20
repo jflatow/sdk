@@ -127,8 +127,8 @@ export class Component<Opts> extends Transform<Opts> {
     return combo(a, b);
   }
 
-  static quick<Opts>(root: Elem, opts?: Opts) {
-    return new this(root.div(), undefined, opts);
+  static quick<Opts, T extends typeof Component<any>>(this: T, root: Elem, opts?: Opts): InstanceType<T> {
+    return new this(root.div(), undefined, opts) as InstanceType<T>;
   }
 
   static styles() {
@@ -161,12 +161,22 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
       return r as R;
     }
 
+    callFold<R>(method: string, p: any = {}, fun: (p?: any, x?: any) => any = up): R {
+      const q = fun(p, (b.prototype as any)[method]?.call(up(this, { halt: true })));
+      const r = fun(q, (a.prototype as any)[method]?.call(up(this, { halt: false })));
+      return r as R;
+    }
+
     init() {
       return this.callAll('init');
     }
 
     render() {
       return this.callAll('render') as Elem;
+    }
+
+    defaultOpts(): A & B {
+      return this.callFold('defaultOpts');
     }
 
     setOpts(opts: A & B): A & B {
