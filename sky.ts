@@ -324,7 +324,7 @@ export class Elem {
     return this.node.getAttributeNS(ns || null, name)
   }
 
-  attrs(attrs?, ns) {
+  attrs(attrs?, ns?) {
     for (let k in attrs) {
       const v = attrs[k]
       if (v == null)

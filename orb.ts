@@ -89,7 +89,7 @@ export class Transform<Opts> extends Orb {
     return new this(undefined, opts);
   }
 
-  defaultOpts(): Opts {
+  defaultOpts(opts: Opts): Opts {
     // for convenience, can always override setOpts for performance
     return {} as Opts;
   }
@@ -100,7 +100,7 @@ export class Transform<Opts> extends Orb {
     // subtypes can simply chain the new opts they handle
     //  and return super.setOpts(chain(opts)) or chain(super.setOpts(opts))
     if (!this.halt) {
-      this.opts = up(this.defaultOpts() as object, opts);
+      this.opts = up(this.defaultOpts(opts) as object, opts);
     }
     return this.opts;
   }
@@ -175,8 +175,8 @@ export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typ
       return this.callAll('render') as Elem;
     }
 
-    defaultOpts(): A & B {
-      return this.callFold('defaultOpts');
+    defaultOpts(opts: A & B): A & B {
+      return this.callFold('defaultOpts', opts);
     }
 
     setOpts(opts: A & B): A & B {
