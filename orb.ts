@@ -45,6 +45,15 @@ export class Orb implements IOrb {
     return (instance[method] ?? (this.prototype as any)[method])?.call(instance, ...args);
   }
 
+  static proxy(fn: () => Orb | null): Orb {
+    return new class Proxy extends Orb {
+      grab(...args: any[]) { fn()?.grab(...args) }
+      move(...args: any[]) { fn()?.move(...args as [number[], ...any[]]) }
+      send(...args: any[]) { fn()?.send(...args) }
+      free(...args: any[]) { fn()?.free(...args) }
+    }
+  }
+
   constructor(impl: IOrb = {}) {
     up(this, impl);
   }
@@ -85,7 +94,7 @@ export class Transform<Opts> extends Orb {
     this.opts = this.setOpts(opts);
   }
 
-  static sink<Opts>(opts?: Opts) {
+  static sink<Opts>(opts?: Opts): any {
     return new this(undefined, opts);
   }
 
@@ -203,7 +212,7 @@ export class Events {
   static readonly scrollwheel = 'mousewheel';
 }
 
-export type Action<T = string> = (payload?: T, event?: Event) => Promise<any>;
+export type Action<T = string> = (payload?: T, event?: Event) => any;
 
 export interface KeyMap {
   [ key: string ]: KeyMap | Action;
