@@ -123,8 +123,8 @@ export class Component<Opts> extends Transform<Opts> {
     this.init();
   }
 
-  static combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {
-    return combo(a, b);
+  static combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component {
+    return combo(a, b) as typeof Component; // tsc can't quite handle A & B
   }
 
   static quick<Opts, T extends typeof Component<any>>(this: T, root: Elem, opts?: Opts): InstanceType<T> {

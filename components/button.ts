@@ -1,4 +1,4 @@
-import { Text } from './text.ts';
+import { Text, TextOpts } from './text.ts';
 import { Component, Event } from '../orb.ts';
 import { press } from '../gestures.ts';
 
@@ -79,4 +79,6 @@ export class Button extends Component<ButtonOpts> {
   }
 }
 
-export class TextButton extends Component.combo(Text, Button) {}
+export interface TextButtonOpts extends TextOpts, ButtonOpts {}
+
+export class TextButton<Opts extends TextButtonOpts = TextButtonOpts> extends Component.combo(Text, Button)<Opts> {}

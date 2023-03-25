@@ -7,7 +7,7 @@ export interface KeysOpts { map?: KeyMap };
 
 export class Keys extends Transform<KeysOpts> {
   declare curKeyMap: KeyMap; // NB: avoid JS re-initializing undefined
-  declare selected?: Orb; // XXX selections...
+  declare selected?: Orb; // XXX selections general interface...
 
   grab(e: Event, ...rest: any[]) {
     Keys.do('captureInput', this, KeyCoder.characterize(e));
