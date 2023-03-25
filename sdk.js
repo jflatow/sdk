@@ -126,11 +126,11 @@ const P = up(path, {
                 y1
             ]) + P('v', cy - y1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('h', x2 - cx);
         } else {
-            const cx1 = x2 - dx, cy1 = y1 + dy;
+            const cx = x2 - dx, cy = y1 + dy;
             return open([
                 x1,
                 y1
-            ]) + P('h', cx1 - x1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('v', y2 - cy1);
+            ]) + P('h', cx - x1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('v', y2 - cy);
         }
     },
     chevron: (cx, cy, w, h, t, open = P.M)=>{
@@ -1461,12 +1461,12 @@ class Transform extends Orb {
     static sink(opts) {
         return new this(undefined, opts);
     }
-    defaultOpts() {
+    defaultOpts(opts) {
         return {};
     }
     setOpts(opts) {
         if (!this.halt) {
-            this.opts = up(this.defaultOpts(), opts);
+            this.opts = up(this.defaultOpts(opts), opts);
         }
         return this.opts;
     }
@@ -1530,8 +1530,8 @@ function combo(a, b) {
         render() {
             return this.callAll('render');
         }
-        defaultOpts() {
-            return this.callFold('defaultOpts');
+        defaultOpts(opts) {
+            return this.callFold('defaultOpts', opts);
         }
         setOpts(opts) {
             return this.callAll('setOpts', opts);
@@ -1777,7 +1777,7 @@ class Button extends Component {
         }
     }
     async press(e) {
-        const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
+        const app = this.opts.app ?? {};
         const act = this.opts.act ?? this.constructor.name;
         const k = `do_${act}`;
         const f = app[k];
@@ -1790,6 +1790,9 @@ class Button extends Component {
             }
         }
         this.elem.removeClass('pressed');
+    }
+    static bypass(btn) {
+        return (_, e)=>Button.do('press', btn, e);
     }
 }
 class TextButton extends Component.combo(Text, Button) {
@@ -1909,15 +1912,15 @@ class Keys extends Transform {
         } else if (input.chars) {
             for(let i = 0; i < input.chars.length; i++){
                 const __char = input.chars[i];
-                const next1 = this.curKeyMap[__char] || this.curKeyMap.default;
-                if (next1 instanceof Function) {
+                const next = this.curKeyMap[__char] || this.curKeyMap.default;
+                if (next instanceof Function) {
                     if (input.event && this.curKeyMap[__char]) input.event.preventDefault();
                     Keys.do('resetKeyMap', this, input);
-                    return next1.call(this, input.chars.slice(i), input.event);
-                } else if (next1 instanceof Orb) {
-                    this.selected = next1;
-                } else if (next1) {
-                    Keys.do('stepKeyMap', this, next1, input);
+                    return next.call(this, input.chars.slice(i), input.event);
+                } else if (next instanceof Orb) {
+                    this.selected = next;
+                } else if (next) {
+                    Keys.do('stepKeyMap', this, next, input);
                 } else {
                     console.debug('input missed key map', input, this);
                     Keys.do('resetKeyMap', this, input);

@@ -5,7 +5,6 @@ import { press } from '../gestures.ts';
 export interface ButtonOpts {
   app?: any,
   act?: string,
-  hold?: number,
   repeat?: boolean,
   threshold?: number,
 };
@@ -24,7 +23,7 @@ export class Button extends Component<ButtonOpts> {
     const f = app[k];
     if (f instanceof Function) {
       const does = f();
-      this.elem.style({ display: does ? null : 'none' }); // XXX keep? opt?
+      this.elem.style({ display: does ? null : 'none' });
     }
     return super.render();
   }
@@ -63,7 +62,7 @@ export class Button extends Component<ButtonOpts> {
   }
 
   async press(e: Event) {
-    const app = this.opts.app ?? {}, hold = this.opts.hold ?? 300;
+    const app = this.opts.app ?? {};
     const act = this.opts.act ?? this.constructor.name;
     const k = `do_${act}`;
     const f = app[k];
@@ -76,6 +75,10 @@ export class Button extends Component<ButtonOpts> {
       }
     }
     this.elem.removeClass('pressed');
+  }
+
+  static bypass(btn: Component<any>) {
+    return (_: any, e: Event) => Button.do('press', btn, e);
   }
 }
 

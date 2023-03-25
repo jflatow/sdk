@@ -126,11 +126,11 @@ const P = up(path, {
                 y1
             ]) + P('v', cy - y1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('h', x2 - cx);
         } else {
-            const cx1 = x2 - dx, cy1 = y1 + dy;
+            const cx = x2 - dx, cy = y1 + dy;
             return open([
                 x1,
                 y1
-            ]) + P('h', cx1 - x1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('v', y2 - cy1);
+            ]) + P('h', cx - x1) + P('a', rx, ry, 0, 0, sd, dx, dy) + P('v', y2 - cy);
         }
     },
     chevron: (cx, cy, w, h, t, open = P.M)=>{
