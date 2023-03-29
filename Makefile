@@ -7,7 +7,7 @@ build: sdk.js sky.js orb.js
 	deno bundle $^ -- $@
 
 test:
-	deno test
+	deno test --quiet
 
 examples: examples-open examples-serve
 

@@ -1,27 +1,36 @@
 import { Event, up } from '../sky.ts';
 import { KeyMap, Orb, Transform } from '../orb.ts';
-// XXX could be a Component, on an element that self binds keyboard?
-//  new KeyCapture(body, this)
 
 export interface KeysOpts { map?: KeyMap };
 
 export class Keys extends Transform<KeysOpts> {
   declare curKeyMap: KeyMap; // NB: avoid JS re-initializing undefined
-  declare selected?: Orb; // XXX selections general interface...
+  declare selected?: Orb; // XXX selections general interface... prob just this
 
-  grab(e: Event, ...rest: any[]) {
-    Keys.do('captureInput', this, KeyCoder.characterize(e));
+  grab(e: Event, ...rest: any[]): boolean {
     super.grab(e, ...rest);
+    if (this.selected) {
+      if (this.selected.grab(e, ...rest) as any)
+        return Keys.do('resetKeyMap', this, KeyCoder.characterize(e)), true;
+      return false;
+    } else {
+      return Keys.do('captureInput', this, KeyCoder.characterize(e));
+    }
   }
 
   move(deltas: number[], e: Event, ...rest: any[]) {
-    this.selected?.move(deltas, e, ...rest);
     super.move(deltas, e, ...rest);
+    this.selected?.move(deltas, e, ...rest);
+  }
+
+  send(e: Event, ...rest: any[]) {
+    super.move(e, ...rest);
+    this.selected?.send(e, ...rest);
   }
 
   free(e: Event, ...rest: any[]) {
-    this.selected?.free(e, ...rest);
     super.free(e, ...rest);
+    this.selected?.free(e, ...rest);
   }
 
   setOpts(opts_: KeysOpts): KeysOpts {
@@ -30,14 +39,15 @@ export class Keys extends Transform<KeysOpts> {
     return opts;
   }
 
-  captureInput(input: Input) {
+  captureInput(input: Input): boolean {
     if (input.special) {
       const next = this.curKeyMap[input.special] || this.curKeyMap.default;
-      if (next instanceof Function) { // XXX different than Orb.from a fn...
+      if (next instanceof Function) { // note: different than Orb.from a fn...
         if (input.event && this.curKeyMap[input.special])
-          input.event.preventDefault();
+          input.event.preventDefault?.();
         Keys.do('resetKeyMap', this, input);
-        return next.call(this, input.chars, input.event);
+        next.call(this, input.chars, input.event);
+        return true;
       } else if (next instanceof Orb) {
         this.selected = next;
       } else if (next) {
@@ -45,6 +55,7 @@ export class Keys extends Transform<KeysOpts> {
       } else {
         console.debug('special input missed key map', input, this);
         Keys.do('resetKeyMap', this, input);
+        return true;
       }
     } else if (input.chars) {
       for (let i = 0; i < input.chars.length; i++) {
@@ -52,9 +63,10 @@ export class Keys extends Transform<KeysOpts> {
         const next = this.curKeyMap[char] || this.curKeyMap.default;
         if (next instanceof Function) {
           if (input.event && this.curKeyMap[char])
-            input.event.preventDefault();
+            input.event.preventDefault?.();
           Keys.do('resetKeyMap', this, input);
-          return next.call(this, input.chars.slice(i), input.event);
+          next.call(this, input.chars.slice(i), input.event);
+          return true;
         } else if (next instanceof Orb) {
           this.selected = next;
         } else if (next) {
@@ -62,6 +74,7 @@ export class Keys extends Transform<KeysOpts> {
         } else {
           console.debug('input missed key map', input, this);
           Keys.do('resetKeyMap', this, input);
+          return true;
         }
       }
     } else if (input.chars === '') {
@@ -69,6 +82,7 @@ export class Keys extends Transform<KeysOpts> {
     } else {
       console.warn('unexpected input', input, this);
     }
+    return false;
   }
 
   resetKeyMap(input: Input = {}) {
@@ -114,10 +128,10 @@ export class KeyCoder {
 
   static keyChar(event: Event): string {
     if (
-      (event.altKey && event.code.startsWith('Alt')) ||
-      (event.ctrlKey && event.code.startsWith('Control')) ||
-      (event.metaKey && event.code.startsWith('Meta')) ||
-      (event.shiftKey && event.code.startsWith('Shift'))
+      (event.altKey && event.code?.startsWith('Alt')) ||
+      (event.ctrlKey && event.code?.startsWith('Control')) ||
+      (event.metaKey && event.code?.startsWith('Meta')) ||
+      (event.shiftKey && event.code?.startsWith('Shift'))
     ) return '';
     return event.key || '';
   }

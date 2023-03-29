@@ -21,3 +21,60 @@ Deno.test('sub component', async () => {
   assertEquals(btn.defaultOpts(), { text: '⮑' });
   assertEquals(btn.opts, { text: '⮑' });
 });
+
+Deno.test('keys', async () => {
+  let aPressed = 0, bPressed = 0, cPressed = 0;
+
+  const map1 = {
+    'C-x': () => aPressed++,
+    'C-p': {
+      c: () => cPressed++,
+    },
+    z: {
+      n: () => false,
+    }
+  };
+  const keys1 = Keys.sink({ map: map1 });
+
+  keys1.grab({ ctrlKey: true, key: 'x' });
+  keys1.grab({ ctrlKey: true, key: 'y' });
+  assertEquals(aPressed, 1);
+  assertEquals(bPressed, 0);
+  assertEquals(cPressed, 0);
+
+  keys1.opts.map['C-y'] = () => bPressed++;
+  keys1.grab({ ctrlKey: true, key: 'y' });
+  assertEquals(bPressed, 1);
+  assertEquals(cPressed, 0);
+
+  const map2 = {
+    z: keys1
+  };
+  const keys2 = Keys.sink({ map: map2 });
+
+  keys2.grab({ key: 'z' });
+  keys2.grab({ ctrlKey: true, key: 'y' });
+  assertEquals(aPressed, 1);
+  assertEquals(bPressed, 2);
+  assertEquals(cPressed, 0);
+
+  keys2.grab({ key: 'q' });
+  keys2.grab({ ctrlKey: true, key: 'y' });
+  assertEquals(aPressed, 1);
+  assertEquals(bPressed, 2);
+  assertEquals(cPressed, 0);
+
+  keys2.grab({ key: 'z' });
+  keys2.grab({ ctrlKey: true, key: 'x' });
+  assertEquals(aPressed, 2);
+  assertEquals(bPressed, 2);
+  assertEquals(cPressed, 0);
+
+  keys2.grab({ key: 'z' });
+  keys2.grab({ ctrlKey: true, key: 'p' });
+  keys2.grab({ key: 'c' });
+  keys2.grab({ key: 'c' });
+  assertEquals(aPressed, 2);
+  assertEquals(bPressed, 2);
+  assertEquals(cPressed, 1);
+});
