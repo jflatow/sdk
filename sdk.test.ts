@@ -27,11 +27,12 @@ Deno.test('keys', async () => {
 
   const map1 = {
     'C-x': () => aPressed++,
-    'C-p': {
-      c: () => cPressed++,
-    },
     z: {
-      n: () => false,
+      'C-x': () => aPressed++,
+      'C-y': () => bPressed++,
+      'C-p': {
+        c: () => cPressed++,
+      },
     }
   };
   const keys1 = Keys.sink({ map: map1 });
@@ -77,4 +78,39 @@ Deno.test('keys', async () => {
   assertEquals(aPressed, 2);
   assertEquals(bPressed, 2);
   assertEquals(cPressed, 1);
+});
+
+Deno.test('keys default proxy', async () => {
+  let aPressed = 0;
+
+  const map1 = {
+    'C-x': {
+      'C-f': () => aPressed++,
+    }
+  };
+  const keys1 = Keys.sink({ map: map1 });
+
+  keys1.grab({ ctrlKey: true, key: 'x' });
+  keys1.grab({ ctrlKey: true, key: 'f' });
+  assertEquals(aPressed, 1);
+  assertEquals(keys1.grip, 2);
+
+  const map2 = {
+    default: Orb.proxy(() => keys1)
+  };
+  const keys2 = Keys.sink({ map: map2 });
+
+  keys2.grab({ ctrlKey: true, key: 'x' });
+  keys2.grab({ ctrlKey: true, key: 'f' });
+  assertEquals(keys2.grip, 2);
+  assertEquals(keys1.grip, 4);
+  assertEquals(aPressed, 2);
+
+  keys2.free();
+  keys2.free();
+  assertEquals(keys2.grip, 0);
+
+  keys1.free();
+  keys1.free();
+  assertEquals(keys1.grip, 0);
 });

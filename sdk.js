@@ -1425,6 +1425,22 @@ class Orb {
     static do(method, instance, ...args) {
         return (instance[method] ?? this.prototype[method])?.call(instance, ...args);
     }
+    static proxy(fn) {
+        return new class Proxy extends Orb {
+            grab(...args) {
+                fn()?.grab(...args);
+            }
+            move(...args) {
+                fn()?.move(...args);
+            }
+            send(...args) {
+                fn()?.send(...args);
+            }
+            free(...args) {
+                fn()?.free(...args);
+            }
+        };
+    }
     constructor(impl = {}){
         up(this, impl);
     }
@@ -1876,16 +1892,23 @@ class Amp extends Transform {
 }
 class Keys extends Transform {
     grab(e, ...rest) {
-        Keys.do('captureInput', this, KeyCoder.characterize(e));
         super.grab(e, ...rest);
+        const input = KeyCoder.characterize(e);
+        const reset = !this.selected && Keys.do('captureInput', this, input);
+        if (this.selected?.grab(e, ...rest)) return Keys.do('resetKeyMap', this, input), true;
+        return reset;
     }
     move(deltas, e, ...rest) {
-        this.selected?.move(deltas, e, ...rest);
         super.move(deltas, e, ...rest);
+        this.selected?.move(deltas, e, ...rest);
+    }
+    send(e, ...rest) {
+        super.move(e, ...rest);
+        this.selected?.send(e, ...rest);
     }
     free(e, ...rest) {
-        this.selected?.free(e, ...rest);
         super.free(e, ...rest);
+        this.selected?.free(e, ...rest);
     }
     setOpts(opts_) {
         const opts = super.setOpts(up({
@@ -1898,9 +1921,10 @@ class Keys extends Transform {
         if (input.special) {
             const next = this.curKeyMap[input.special] || this.curKeyMap.default;
             if (next instanceof Function) {
-                if (input.event && this.curKeyMap[input.special]) input.event.preventDefault();
+                if (input.event && this.curKeyMap[input.special]) input.event.preventDefault?.();
                 Keys.do('resetKeyMap', this, input);
-                return next.call(this, input.chars, input.event);
+                next.call(this, input.chars, input.event);
+                return true;
             } else if (next instanceof Orb) {
                 this.selected = next;
             } else if (next) {
@@ -1908,15 +1932,17 @@ class Keys extends Transform {
             } else {
                 console.debug('special input missed key map', input, this);
                 Keys.do('resetKeyMap', this, input);
+                return true;
             }
         } else if (input.chars) {
             for(let i = 0; i < input.chars.length; i++){
                 const __char = input.chars[i];
                 const next = this.curKeyMap[__char] || this.curKeyMap.default;
                 if (next instanceof Function) {
-                    if (input.event && this.curKeyMap[__char]) input.event.preventDefault();
+                    if (input.event && this.curKeyMap[__char]) input.event.preventDefault?.();
                     Keys.do('resetKeyMap', this, input);
-                    return next.call(this, input.chars.slice(i), input.event);
+                    next.call(this, input.chars.slice(i), input.event);
+                    return true;
                 } else if (next instanceof Orb) {
                     this.selected = next;
                 } else if (next) {
@@ -1924,6 +1950,7 @@ class Keys extends Transform {
                 } else {
                     console.debug('input missed key map', input, this);
                     Keys.do('resetKeyMap', this, input);
+                    return true;
                 }
             }
         } else if (input.chars === '') {
@@ -1931,6 +1958,7 @@ class Keys extends Transform {
         } else {
             console.warn('unexpected input', input, this);
         }
+        return false;
     }
     resetKeyMap(input = {}) {
         this.curKeyMap = this.opts.map;
@@ -1966,7 +1994,7 @@ class KeyCoder {
         return modifiers;
     }
     static keyChar(event) {
-        if (event.altKey && event.code.startsWith('Alt') || event.ctrlKey && event.code.startsWith('Control') || event.metaKey && event.code.startsWith('Meta') || event.shiftKey && event.code.startsWith('Shift')) return '';
+        if (event.altKey && event.code?.startsWith('Alt') || event.ctrlKey && event.code?.startsWith('Control') || event.metaKey && event.code?.startsWith('Meta') || event.shiftKey && event.code?.startsWith('Shift')) return '';
         return event.key || '';
     }
     static specialChar(event) {

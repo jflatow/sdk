@@ -203,6 +203,22 @@ class Orb {
     static do(method, instance, ...args) {
         return (instance[method] ?? this.prototype[method])?.call(instance, ...args);
     }
+    static proxy(fn) {
+        return new class Proxy extends Orb {
+            grab(...args) {
+                fn()?.grab(...args);
+            }
+            move(...args) {
+                fn()?.move(...args);
+            }
+            send(...args) {
+                fn()?.send(...args);
+            }
+            free(...args) {
+                fn()?.free(...args);
+            }
+        };
+    }
     constructor(impl = {}){
         up(this, impl);
     }

@@ -9,13 +9,11 @@ export class Keys extends Transform<KeysOpts> {
 
   grab(e: Event, ...rest: any[]): boolean {
     super.grab(e, ...rest);
-    if (this.selected) {
-      if (this.selected.grab(e, ...rest) as any)
-        return Keys.do('resetKeyMap', this, KeyCoder.characterize(e)), true;
-      return false;
-    } else {
-      return Keys.do('captureInput', this, KeyCoder.characterize(e));
-    }
+    const input = KeyCoder.characterize(e);
+    const reset = !this.selected && Keys.do('captureInput', this, input);
+    if (this.selected?.grab(e, ...rest) as any)
+      return Keys.do('resetKeyMap', this, input), true;
+    return reset as boolean;
   }
 
   move(deltas: number[], e: Event, ...rest: any[]) {
