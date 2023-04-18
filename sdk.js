@@ -1502,7 +1502,10 @@ class Component extends Transform {
         return combo(a, b);
     }
     static quick(root, opts) {
-        return new this(root.div(), undefined, opts);
+        return new this(this.sprout(root, opts), undefined, opts);
+    }
+    static sprout(root, _opts) {
+        return root.div();
     }
     static styles() {
         return {};

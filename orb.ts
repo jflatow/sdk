@@ -137,7 +137,11 @@ export class Component<Opts> extends Transform<Opts> {
   }
 
   static quick<Opts, T extends typeof Component<any>>(this: T, root: Elem, opts?: Opts): InstanceType<T> {
-    return new this(root.div(), undefined, opts) as InstanceType<T>;
+    return new this(this.sprout(root, opts), undefined, opts) as InstanceType<T>;
+  }
+
+  static sprout<Opts>(root: Elem, _opts?: Opts): Elem {
+    return root.div();
   }
 
   static styles() {
@@ -213,6 +217,7 @@ export class Events {
 }
 
 export type Action<T = string> = (payload?: T, event?: Event) => any;
+export type Actuator = Action | Orb;
 
 export interface KeyMap {
   [ key: string ]: KeyMap | Action;
