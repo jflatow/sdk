@@ -285,9 +285,14 @@ class Elem {
         return wrap(this.node.parentNode);
     }
     root() {
-        const n = this.node;
+        let n = this.node;
         while(n.parentNode)n = n.parentNode;
         return n;
+    }
+    ancestor(f, d) {
+        if (this.node == this.node.ownerDocument.documentElement) return d ?? this;
+        const p = this.parent();
+        return f(p) ? p : p.ancestor(f);
     }
     attached(o) {
         return this.root() == (o ? o.root() : this.doc().node);
@@ -603,11 +608,21 @@ class Elem {
         const box = new Box(this.node.getBoundingClientRect());
         return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset);
     }
-    pos(e, rel) {
-        const box = rel === true ? this.bbox() : rel;
+    gps() {
+        return this.ancestor((a)=>[
+                'absolute',
+                'relative',
+                'fixed'
+            ].includes(a.css('position')));
+    }
+    pos(e, abs) {
+        const box = abs ? {
+            x: 0,
+            y: 0
+        } : this.gps().bbox();
         return {
-            x: e.pageX - (box?.x ?? 0),
-            y: e.pageY - (box?.y ?? 0)
+            x: e.pageX - box.x,
+            y: e.pageY - box.y
         };
     }
     wh(w, h, u) {
@@ -1064,7 +1079,7 @@ class Box {
                 bottom: max(a.bottom, b.bottom)
             };
         }, this);
-        return new Box({
+        return new this.constructor({
             x: bnds.x,
             y: bnds.y,
             w: bnds.right - bnds.x,
@@ -1147,7 +1162,7 @@ class Box {
     }
     scale(a, b) {
         const w = a * this.w, h = dfn(b, a) * this.h;
-        return new Box({
+        return new this.constructor({
             x: this.midX - w / 2,
             y: this.midY - h / 2,
             w: w,
@@ -1158,6 +1173,12 @@ class Box {
         return this.copy({
             x: this.x + (dx || 0),
             y: this.y + (dy || 0)
+        });
+    }
+    stretch(dx, dy) {
+        return this.copy({
+            w: this.w + (dx || 0),
+            h: this.h + (dy || 0)
         });
     }
     square(big) {
@@ -1194,7 +1215,7 @@ class Box {
     }
     trim(t, r, b, l) {
         t = dfn(t, 0), r = dfn(r, t), b = dfn(b, t), l = dfn(l, r);
-        return new Box({
+        return new this.constructor({
             x: this.x + l,
             y: this.y + t,
             w: this.w - r - l,
@@ -1204,7 +1225,7 @@ class Box {
     copy(o_) {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
         const { x , y , w , h  } = this;
-        return new Box({
+        return new this.constructor({
             x: dfn(o.x, x),
             y: dfn(o.y, y),
             w: dfn(ow, w),

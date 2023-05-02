@@ -5,6 +5,7 @@
     <style>
       * {
         user-select: none;
+        box-sizing: border-box;
       }
 
       #paper {
@@ -15,6 +16,10 @@
       .pressed {
         color: green;
       }
+
+      .Frame {
+        border: 1px solid grey;
+      }
     </style>
   </head>
   <body>
@@ -22,14 +27,15 @@
     <script type="module">
       import { assert } from './assert.js';
       import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
-      const { Amp, Keys, Loop } = Transforms;
-      const { Button, Spring, Text, TextButton, Wagon } = Components;
+      const { Amp, BBoxSelector, Keys, Loop } = Transforms;
+      const { Button, Frame, Spring, Text, TextButton, Wagon } = Components;
 
       const paper = Sky.$('#paper').attrs({ tabindex: 0 });
       const text1 = new Text(paper.div());
       const text2 = new Text(paper.div(), null);
       const text3 = new Text(paper.div(), null, { text: "Hello there" });
       const text4 = Text.quick(paper, { text: "Hello there" });
+      const text5 = Text.quick(paper, { text: "Input" });
 
       const button1 = new TextButton(paper.div(), null, {
         app: { do_TextButton: () => console.log('do_TextButton', button1) }
@@ -57,9 +63,33 @@
           console.log('free', e)
         },
       }), { gain: 3 });
-      Gestures.scroll(paper, new Wagon(text3.elem));
-      Gestures.swipe(paper, new Spring(text4.elem, new Wagon(text4.elem)));
-      Gestures.tap(paper, new Wagon(paper));
+      Gestures.tap(text5.elem, new Wagon(text2.elem));
+      Gestures.scroll(text5.elem, new Wagon(text3.elem));
+      Gestures.swipe(text5.elem, new Spring(text4.elem, new Wagon(text4.elem)));
+
+      const selector = BBoxSelector.sink({
+        selectable: () => [text1, text2, text3, text4, text5, button1, button2].map((c) => {
+          return {
+            elem: c.elem,
+            select: () => c.elem.style({ color: 'blue' }),
+            deselect: () => c.elem.style({ color: null }),
+          }
+        })
+      });
+
+      const frame1 = new Frame(paper.div(), {
+        grab: (e) => {
+          frame1.setOpts({ mode: e.ctrlKey ? 'move' : 'resize' });
+          paper.style({ cursor: 'grabbing' });
+        },
+        free: () => paper.style({ cursor: null }),
+      });
+      const frame2 = new Frame(paper.div(), selector, { transient: true });
+      paper.on('contextmenu', (e) => e.preventDefault());
+      Gestures.swipe(paper, frame1);
+      Gestures.swipe(frame1.elem, frame2);
+      // XXX Gestures.swipe(paper, frame1.withOpts({ mode: 'move' }))
+      // XXX Gestures.pinch(paper, frame1.withOpts({ mode: 'resize' }))
 
       const action1 = (...args) => console.log('action 1', ...args);
       const action2 = (...args) => console.log('action 2', ...args);

@@ -109,7 +109,7 @@ export class Transform<Opts> extends Orb {
     // subtypes can simply chain the new opts they handle
     //  and return super.setOpts(chain(opts)) or chain(super.setOpts(opts))
     if (!this.halt) {
-      this.opts = up(this.defaultOpts(opts) as object, opts);
+      this.opts = up(this.opts ?? this.defaultOpts(opts) as object, opts);
     }
     return this.opts;
   }
@@ -125,7 +125,7 @@ export class Component<Opts> extends Transform<Opts> {
   elem: Elem;
   subs: Component<any>[];
 
-  constructor(elem: Elem, jack?: Orb, opts?: Opts, impl = { elem }) {
+  constructor(elem: Elem, jack?: OrbLike, opts?: Opts, impl = { elem }) {
     super(jack, opts, impl);
     this.elem = elem;
     this.subs = [];
@@ -161,6 +161,11 @@ export class Component<Opts> extends Transform<Opts> {
       this.subs.forEach(c => c.render());
     }
     return this.elem;
+  }
+
+  destroy() {
+    // override to add additional standard cleanup
+    this.elem.remove();
   }
 }
 
@@ -221,4 +226,8 @@ export type Actuator = Action | Orb;
 
 export interface KeyMap {
   [ key: string ]: KeyMap | Action;
+}
+
+export interface Representable {
+  elem: Elem;
 }

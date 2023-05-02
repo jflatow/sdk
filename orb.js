@@ -260,7 +260,7 @@ class Transform extends Orb {
     }
     setOpts(opts) {
         if (!this.halt) {
-            this.opts = up(this.defaultOpts(opts), opts);
+            this.opts = up(this.opts ?? this.defaultOpts(opts), opts);
         }
         return this.opts;
     }
@@ -299,6 +299,9 @@ class Component extends Transform {
             this.subs.forEach((c)=>c.render());
         }
         return this.elem;
+    }
+    destroy() {
+        this.elem.remove();
     }
 }
 function combo(a, b) {

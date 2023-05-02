@@ -3,6 +3,8 @@ import { KeyMap, Orb, Transform } from '../orb.ts';
 
 export interface KeysOpts { map?: KeyMap };
 
+// XXX re-think selected here? possibly (just) rename?
+//  also relates to both opt and state question
 export class Keys extends Transform<KeysOpts> {
   declare curKeyMap: KeyMap; // NB: avoid JS re-initializing undefined
   declare selected?: Orb; // XXX selections general interface... prob just this

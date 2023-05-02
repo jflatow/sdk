@@ -167,7 +167,7 @@ export const P: any = up(path, {
     }
   })
 
-export interface Point { x: number, y: number };
+export interface Point { x?: number, y?: number };
 
 export const SVGTransform = window.SVGTransform;
 export interface Transformation {
@@ -283,10 +283,17 @@ export class Elem {
   }
 
   root() {
-    const n = this.node;
+    let n = this.node;
     while (n.parentNode)
       n = n.parentNode;
     return n;
+  }
+
+  ancestor(f, d?) {
+    if (this.node == this.node.ownerDocument.documentElement)
+      return d ?? this;
+    const p = this.parent()
+    return f(p) ? p : p.ancestor(f)
   }
 
   attached(o) {
@@ -301,8 +308,8 @@ export class Elem {
     return this.$(q) || fun(this)
   }
 
-  hide(b) { return this.attrs({hidden: dfn(b, true) ? '' : null}) }
-  show(b) { return this.attrs({hidden: dfn(b, true) ? null : ''}) }
+  hide(b?) { return this.attrs({hidden: dfn(b, true) ? '' : null}) }
+  show(b?) { return this.attrs({hidden: dfn(b, true) ? null : ''}) }
   activate(b) { return this.instate(b, 'activated') }
   collapse(b) { return this.instate(b, 'collapsed') }
   validate(b) {
@@ -614,9 +621,13 @@ export class Elem {
     return fixed ? box : box.shift(window.pageXOffset, window.pageYOffset)
   }
 
-  pos(e, rel?) {
-    const box = rel === true ? this.bbox() : rel;
-    return {x: e.pageX - (box?.x ?? 0), y: e.pageY - (box?.y ?? 0)};
+  gps() {
+    return this.ancestor(a => ['absolute', 'relative', 'fixed'].includes(a.css('position')))
+  }
+
+  pos(e, abs?) {
+    const box = abs ? {x: 0, y: 0} : this.gps().bbox()
+    return {x: e.pageX - box.x, y: e.pageY - box.y};
   }
 
   wh(w, h, u?) {
@@ -1026,7 +1037,7 @@ export class Box {
     const bnds = [].concat(boxs).reduce(function (a, b) {
       return {x: min(a.x, b.x), y: min(a.y, b.y), right: max(a.right, b.right), bottom: max(a.bottom, b.bottom)}
     }, this)
-    return new Box({x: bnds.x, y: bnds.y, w: bnds.right - bnds.x, h: bnds.bottom - bnds.y})
+    return new this.constructor({x: bnds.x, y: bnds.y, w: bnds.right - bnds.x, h: bnds.bottom - bnds.y})
   }
 
   tile(fun, acc, opts) {
@@ -1082,11 +1093,15 @@ export class Box {
 
   scale(a, b) {
     const w = a * this.w, h = dfn(b, a) * this.h;
-    return new Box({x: this.midX - w / 2, y: this.midY - h / 2, w: w, h: h})
+    return new this.constructor({x: this.midX - w / 2, y: this.midY - h / 2, w: w, h: h})
   }
 
   shift(dx, dy) {
     return this.copy({x: this.x + (dx || 0), y: this.y + (dy || 0)})
+  }
+
+  stretch(dx, dy) {
+    return this.copy({w: this.w + (dx || 0), h: this.h + (dy || 0)})
   }
 
   square(big) {
@@ -1121,13 +1136,13 @@ export class Box {
 
   trim(t, r, b, l) {
     t = dfn(t, 0), r = dfn(r, t), b = dfn(b, t), l = dfn(l, r)
-    return new Box({x: this.x + l, y: this.y + t, w: this.w - r - l, h: this.h - t - b})
+    return new this.constructor({x: this.x + l, y: this.y + t, w: this.w - r - l, h: this.h - t - b})
   }
 
   copy(o_) {
     const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height)
     const { x, y, w, h } = this;
-    return new Box({x: dfn(o.x, x), y: dfn(o.y, y), w: dfn(ow, w), h: dfn(oh, h)})
+    return new this.constructor({x: dfn(o.x, x), y: dfn(o.y, y), w: dfn(ow, w), h: dfn(oh, h)})
   }
 
   equals(o_) {
