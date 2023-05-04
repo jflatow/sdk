@@ -78,18 +78,14 @@
       });
 
       const frame1 = new Frame(paper.div(), {
-        grab: (e) => {
-          frame1.setOpts({ mode: e.ctrlKey ? 'move' : 'resize' });
-          paper.style({ cursor: 'grabbing' });
-        },
+        grab: () => paper.style({ cursor: 'grabbing' }),
         free: () => paper.style({ cursor: null }),
       });
       const frame2 = new Frame(paper.div(), selector, { transient: true });
-      paper.on('contextmenu', (e) => e.preventDefault());
-      Gestures.swipe(paper, frame1);
+      frame2.elem.style({ 'border-style': 'dotted' });
+      Gestures.swipe(paper, frame1.withMode('move'));
+      Gestures.scroll(paper, frame1.withMode('resize')); // XXX pinch
       Gestures.swipe(frame1.elem, frame2);
-      // XXX Gestures.swipe(paper, frame1.withOpts({ mode: 'move' }))
-      // XXX Gestures.pinch(paper, frame1.withOpts({ mode: 'resize' }))
 
       const action1 = (...args) => console.log('action 1', ...args);
       const action2 = (...args) => console.log('action 2', ...args);

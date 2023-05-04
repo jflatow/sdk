@@ -1430,6 +1430,7 @@ class Orb {
     grip = 0;
     halt = false;
     jack;
+    mode;
     static from(jack) {
         if (jack instanceof Orb) return jack;
         else if (typeof jack === 'function') return new this({
@@ -1445,6 +1446,30 @@ class Orb {
     }
     static do(method, instance, ...args) {
         return (instance[method] ?? this.prototype[method])?.call(instance, ...args);
+    }
+    static middle(orb, before, after) {
+        return new class Middle extends Orb {
+            grab(...args) {
+                before?.();
+                orb.grab(...args);
+                after?.();
+            }
+            move(...args) {
+                before?.();
+                orb.move(...args);
+                after?.();
+            }
+            send(...args) {
+                before?.();
+                orb.send(...args);
+                after?.();
+            }
+            free(...args) {
+                before?.();
+                orb.free(...args);
+                after?.();
+            }
+        };
     }
     static proxy(fn) {
         return new class Proxy extends Orb {
@@ -1486,6 +1511,9 @@ class Orb {
             this.grip--;
             this.jack?.free(...args);
         }
+    }
+    withMode(mode) {
+        return Orb.middle(this, ()=>this.mode = mode);
     }
 }
 class Transform extends Orb {
@@ -1879,7 +1907,7 @@ class Frame extends Component {
         this.elem.order(-1);
     }
     move(deltas, ...rest) {
-        const shape = this.opts.shape?.deform(deltas, this.opts.mode);
+        const shape = this.opts.shape?.deform(deltas, this.mode);
         super.move(deltas, shape, ...rest);
         this.setOpts({
             shape

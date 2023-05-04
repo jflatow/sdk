@@ -31,7 +31,6 @@ export class BoxShape extends Box {
 }
 
 export interface FrameOpts<M> {
-  mode?: M,
   shape?: Shape<M>,
   shapeFn?: ShapeConstructor<M>,
   transient?: boolean,
@@ -61,7 +60,7 @@ export class Frame<M = BoxShapeMode> extends Component<FrameOpts<M>> {
   }
 
   move(deltas: number[], ...rest: any[]) {
-    const shape = this.opts.shape?.deform(deltas, this.opts.mode);
+    const shape = this.opts.shape?.deform(deltas, this.mode as M);
     super.move(deltas, shape, ...rest); // may modify shape
     this.setOpts({ shape });
   }

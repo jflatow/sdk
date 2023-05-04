@@ -29,6 +29,7 @@ export class Orb implements IOrb {
   grip: number = 0;
   halt: boolean = false;
   jack?: Orb;
+  mode?: unknown;
 
   static from(jack: OrbLike): Orb {
     if (jack instanceof Orb)
@@ -43,6 +44,15 @@ export class Orb implements IOrb {
 
   static do<R>(method: string, instance: any, ...args: any[]): R {
     return (instance[method] ?? (this.prototype as any)[method])?.call(instance, ...args);
+  }
+
+  static middle(orb: Orb, before?: Func, after?: Func): Orb {
+    return new class Middle extends Orb {
+      grab(...args: any[]) { before?.(); orb.grab(...args); after?.() }
+      move(...args: any[]) { before?.(); orb.move(...args as [number[], ...any[]]); after?.() }
+      send(...args: any[]) { before?.(); orb.send(...args); after?.() }
+      free(...args: any[]) { before?.(); orb.free(...args); after?.() }
+    }
   }
 
   static proxy(fn: () => Orb | null): Orb {
@@ -82,6 +92,11 @@ export class Orb implements IOrb {
       this.grip--;
       this.jack?.free(...args);
     }
+  }
+
+  withMode(mode: unknown) {
+    // intentionally does not revert
+    return Orb.middle(this, () => this.mode = mode);
   }
 }
 
