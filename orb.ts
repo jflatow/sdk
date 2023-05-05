@@ -233,7 +233,7 @@ export class Events {
   static readonly pointermove = 'pointermove';
   static readonly pointerexit = [this.pointerup, 'pointercancel'].join(' ')
 
-  static readonly scrollwheel = 'mousewheel';
+  static readonly wheel = 'wheel';
 }
 
 export type Action<T = string> = (payload?: T, event?: Event) => any;

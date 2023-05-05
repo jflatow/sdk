@@ -83,8 +83,9 @@
       });
       const frame2 = new Frame(paper.div(), selector, { transient: true });
       frame2.elem.style({ 'border-style': 'dotted' });
+      Gestures.pinch(paper, frame1.withMode('resize'));
       Gestures.swipe(paper, frame1.withMode('move'));
-      Gestures.scroll(paper, frame1.withMode('resize')); // XXX pinch
+      Gestures.scroll(paper, frame1.withMode('resize'));
       Gestures.swipe(frame1.elem, frame2);
 
       const action1 = (...args) => console.log('action 1', ...args);

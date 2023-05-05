@@ -45,7 +45,7 @@ export class Frame<M = BoxShapeMode> extends Component<FrameOpts<M>> {
 
   setOpts(opts_: FrameOpts<M>): FrameOpts<M> {
     const opts = super.setOpts(opts_);
-    const shape = this.opts.shape ?? new this.opts.shapeFn!();
+    const shape = opts.shape = opts.shape ?? new opts.shapeFn!();
     shape.mold(this.elem);
     return opts;
   }

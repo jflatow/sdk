@@ -1632,7 +1632,7 @@ class Events {
         this.pointerup,
         'pointercancel'
     ].join(' ');
-    static scrollwheel = 'mousewheel';
+    static wheel = 'wheel';
 }
 export { broadcast as broadcast };
 export { Orb as Orb };
@@ -1656,6 +1656,22 @@ function keypress(elem, jack_, opts_ = {}) {
             jack.free(e);
             if (opts.prevent) e.preventDefault();
         });
+    });
+}
+function pinch(elem, jack_, opts_ = {}) {
+    const jack = Orb.from(jack_);
+    const opts = up({
+        prevent: true
+    }, opts_);
+    elem.on(Events.wheel, (e)=>{
+        if (e.ctrlKey) {
+            jack.move([
+                -e.deltaY,
+                -e.deltaY
+            ], e);
+            if (opts.stop) e.stopImmediatePropagation();
+            if (opts.prevent) e.preventDefault();
+        }
     });
 }
 function press(elem, jack_, opts_ = {}) {
@@ -1685,17 +1701,19 @@ function scroll(elem, jack_, opts_ = {}) {
         prevent: true
     }, opts_);
     let lx, ly;
-    elem.on(Events.scrollwheel, (e)=>{
-        jack.move([
-            e.wheelDeltaX,
-            e.wheelDeltaY,
-            lx,
-            ly
-        ], e);
-        lx = e.pageX;
-        ly = e.pageY;
-        if (opts.stop) e.stopImmediatePropagation();
-        if (opts.prevent) e.preventDefault();
+    elem.on(Events.wheel, (e)=>{
+        if (!e.ctrlKey) {
+            jack.move([
+                -e.deltaX,
+                -e.deltaY,
+                lx,
+                ly
+            ], e);
+            lx = e.pageX;
+            ly = e.pageY;
+            if (opts.stop) e.stopImmediatePropagation();
+            if (opts.prevent) e.preventDefault();
+        }
     });
 }
 function swipe(elem, jack_, opts_ = {}) {
@@ -1785,6 +1803,7 @@ function dbltap(elem, jack_, opts_ = {}) {
 }
 const mod1 = {
     keypress,
+    pinch,
     press,
     scroll,
     swipe,
@@ -1894,7 +1913,7 @@ class Frame extends Component {
     }
     setOpts(opts_) {
         const opts = super.setOpts(opts_);
-        const shape = this.opts.shape ?? new this.opts.shapeFn();
+        const shape = opts.shape = opts.shape ?? new opts.shapeFn();
         shape.mold(this.elem);
         return opts;
     }

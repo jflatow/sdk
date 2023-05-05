@@ -389,7 +389,7 @@ class Events {
         this.pointerup,
         'pointercancel'
     ].join(' ');
-    static scrollwheel = 'mousewheel';
+    static wheel = 'wheel';
 }
 export { broadcast as broadcast };
 export { Orb as Orb };

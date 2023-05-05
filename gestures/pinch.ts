@@ -1,18 +1,15 @@
 import { Elem, up } from '../sky.ts';
 import { Event, Events, Orb, OrbLike } from '../orb.ts';
-import { swipe } from './swipe.ts';
 
-export interface ScrollOpts { prevent?: boolean, stop?: boolean };
+export type PinchOpts = { prevent?: boolean, stop?: boolean };
 
-export function scroll(elem: Elem, jack_: OrbLike, opts_: ScrollOpts = {}) {
+// TODO: dual trackpad and multi-touch pinch?
+export function pinch(elem: Elem, jack_: OrbLike, opts_: PinchOpts = {}) {
   const jack = Orb.from(jack_);
   const opts = up({ prevent: true }, opts_);
-  let lx: number, ly: number;
   elem.on(Events.wheel, (e: Event) => {
-    if (!e.ctrlKey) {
-      jack.move([-e.deltaX, -e.deltaY, lx, ly], e);
-      lx = e.pageX;
-      ly = e.pageY;
+    if (e.ctrlKey) {
+      jack.move([-e.deltaY, -e.deltaY], e); // NB: only get single dimension...
       if (opts.stop)
         e.stopImmediatePropagation();
       if (opts.prevent)
