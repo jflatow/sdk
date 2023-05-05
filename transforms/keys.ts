@@ -31,6 +31,7 @@ export class Keys extends Transform<KeysOpts> {
   free(e: Event, ...rest: any[]) {
     super.free(e, ...rest);
     this.selected?.free(e, ...rest);
+    this.selected && Keys.do('resetKeyMap', this); // Q: right reset?
   }
 
   setOpts(opts_: KeysOpts): KeysOpts {

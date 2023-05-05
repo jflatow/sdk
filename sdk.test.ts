@@ -2,7 +2,7 @@ import { Sky, Orb, Gestures, Components, Transforms } from './sdk.ts';
 
 const { keypress, pinch, press, scroll, swipe, tap } = Gestures;
 const { Amp, Keys, Loop, BBoxSelector } = Transforms;
-const { Button, Frame, Text, TextButton, Wagon } = Components;
+const { Button, Frame, SelectionBox, Text, TextButton, Wagon } = Components;
 
 import { assert, assertEquals, assertRejects } from 'https://deno.land/std/testing/asserts.ts';
 

@@ -20,6 +20,10 @@
       .Frame {
         border: 1px solid grey;
       }
+
+      .SelectionBox {
+        border: 1px dotted; grey;
+      }
     </style>
   </head>
   <body>
@@ -28,7 +32,7 @@
       import { assert } from './assert.js';
       import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
       const { Amp, BBoxSelector, Keys, Loop } = Transforms;
-      const { Button, Frame, Spring, Text, TextButton, Wagon } = Components;
+      const { Button, Frame, SelectionBox, Spring, Text, TextButton, Wagon } = Components;
 
       const paper = Sky.$('#paper').attrs({ tabindex: 0 });
       const text1 = new Text(paper.div());
@@ -67,7 +71,11 @@
       Gestures.scroll(text5.elem, new Wagon(text3.elem));
       Gestures.swipe(text5.elem, new Spring(text4.elem, new Wagon(text4.elem)));
 
-      const selector = BBoxSelector.sink({
+      const frame = new Frame(paper.div(), {
+        grab: () => paper.style({ cursor: 'grabbing' }),
+        free: () => paper.style({ cursor: null }),
+      });
+      const selectionBox = SelectionBox.quick(paper.div(), {
         selectable: () => [text1, text2, text3, text4, text5, button1, button2].map((c) => {
           return {
             elem: c.elem,
@@ -77,16 +85,10 @@
         })
       });
 
-      const frame1 = new Frame(paper.div(), {
-        grab: () => paper.style({ cursor: 'grabbing' }),
-        free: () => paper.style({ cursor: null }),
-      });
-      const frame2 = new Frame(paper.div(), selector, { transient: true });
-      frame2.elem.style({ 'border-style': 'dotted' });
-      Gestures.pinch(paper, frame1.withMode('resize'));
-      Gestures.swipe(paper, frame1.withMode('move'));
-      Gestures.scroll(paper, frame1.withMode('resize'));
-      Gestures.swipe(frame1.elem, frame2);
+      Gestures.pinch(paper, frame.withMode('resize'));
+      Gestures.swipe(paper, frame.withMode('move'));
+      Gestures.scroll(paper, frame.withMode('resize'));
+      Gestures.swipe(frame.elem, selectionBox);
 
       const action1 = (...args) => console.log('action 1', ...args);
       const action2 = (...args) => console.log('action 2', ...args);
@@ -94,7 +96,7 @@
         map: {
           'A': {
             'B': action1,
-            'C': button1, // XXX not really triggerable?
+            'C': button1, // XXX not really triggerable? actually once activated can't get off unless reset on fre
           },
           'C-b': action2,
           'C-c': button2, // XXX no grab / double free not right? oh bc grab after first, free for each under thresh

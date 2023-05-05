@@ -1,5 +1,5 @@
 import { Box, Event } from '../sky.ts';
-import { Orb, Transform, Representable } from '../orb.ts';
+import { Transform, Representable } from '../orb.ts';
 import { Selectable, Selection } from '../mutex.ts';
 
 export interface BBoxSelectable extends Representable, Selectable {}
@@ -30,12 +30,3 @@ export class BBoxSelector<T extends BBoxSelectable> extends Transform<BBoxSelect
     super.move(deltas, selection, ...rest);
   }
 }
-
-// XXX and where do Graphs live??
-//  prob like Layers, in userspace for now
-//  function selectionBox
-//   or wrap class/cons?
-//  tied to how will selection be exposed?
-//   leave it on opts, it could be like thing.jack.selection
-//    so whats thing.jack.opts.selection
-//  let selection box expose the selection top

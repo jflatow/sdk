@@ -1937,6 +1937,62 @@ class Frame extends Component {
         if (this.opts.transient) this.elem.hide();
     }
 }
+class Selection {
+    members;
+    constructor(){
+        this.members = new Set;
+    }
+    get selected() {
+        return [
+            ...this.members
+        ];
+    }
+    select(...members) {
+        this.removeSelected(...this.members);
+        this.addSelected(...members);
+    }
+    addSelected(...members) {
+        for (const member of members)if (member.select(this) ?? true) this.members.add(member);
+    }
+    removeSelected(...members) {
+        for (const member of members)if (member.deselect(this) ?? true) this.members.delete(member);
+    }
+}
+class BBoxSelector extends Transform {
+    setOpts(opts_) {
+        const opts = super.setOpts(opts_);
+        opts.selection = opts.selection ?? new Selection;
+        return opts;
+    }
+    move(deltas, bbox, ...rest) {
+        const region = bbox.normalize();
+        const selection = this.opts.selection;
+        const selectables = this.opts.selectable?.() ?? [];
+        for (const item of selectables){
+            if (region.overlaps(item.elem.bbox())) {
+                selection.addSelected(item);
+            } else {
+                selection.removeSelected(item);
+            }
+        }
+        super.move(deltas, selection, ...rest);
+    }
+}
+class SelectionBox extends Frame {
+    get selection() {
+        return this.opts.selection;
+    }
+    defaultOpts() {
+        return {
+            ...super.defaultOpts(),
+            transient: true
+        };
+    }
+    init() {
+        super.init();
+        this.jack = new BBoxSelector(this.jack, this.opts);
+    }
+}
 class Spring extends Component {
     dx;
     dy;
@@ -1999,6 +2055,7 @@ const mod2 = {
     Button,
     TextButton,
     Text,
+    SelectionBox,
     BoxShape,
     Frame,
     Spring,
@@ -2035,6 +2092,7 @@ class Keys extends Transform {
     free(e, ...rest) {
         super.free(e, ...rest);
         this.selected?.free(e, ...rest);
+        this.selected && Keys.do('resetKeyMap', this);
     }
     setOpts(opts_) {
         const opts = super.setOpts(up({
@@ -2186,53 +2244,12 @@ class Loop extends Transform {
         super.move(deltas, cur, ...rest);
     }
 }
-class Selection {
-    members;
-    constructor(){
-        this.members = new Set;
-    }
-    get selected() {
-        return [
-            ...this.members
-        ];
-    }
-    select(...members) {
-        this.removeSelected(...this.members);
-        this.addSelected(...members);
-    }
-    addSelected(...members) {
-        for (const member of members)if (member.select(this) ?? true) this.members.add(member);
-    }
-    removeSelected(...members) {
-        for (const member of members)if (member.deselect(this) ?? true) this.members.delete(member);
-    }
-}
-class BBoxSelector extends Transform {
-    setOpts(opts_) {
-        const opts = super.setOpts(opts_);
-        opts.selection = opts.selection ?? new Selection;
-        return opts;
-    }
-    move(deltas, bbox, ...rest) {
-        const region = bbox.normalize();
-        const selection = this.opts.selection;
-        const selectables = this.opts.selectable?.() ?? [];
-        for (const item of selectables){
-            if (region.overlaps(item.elem.bbox())) {
-                selection.addSelected(item);
-            } else {
-                selection.removeSelected(item);
-            }
-        }
-        super.move(deltas, selection, ...rest);
-    }
-}
 const mod3 = {
+    BBoxSelector,
     Amp,
     Keys,
     KeyCoder,
-    Loop,
-    BBoxSelector
+    Loop
 };
 export { mod as Sky };
 export { mod1 as Gestures };

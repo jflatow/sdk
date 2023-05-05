@@ -30,20 +30,18 @@ export class BoxShape extends Box {
   }
 }
 
-export interface FrameOpts<M> {
+export interface FrameOpts<M = BoxShapeMode> {
   shape?: Shape<M>,
   shapeFn?: ShapeConstructor<M>,
   transient?: boolean,
 };
 
-// XXX so could cls just sub and not be transient?
-//  and selection box Graph w/ transient?
-export class Frame<M = BoxShapeMode> extends Component<FrameOpts<M>> {
-  defaultOpts(): FrameOpts<M> {
+export class Frame<M = BoxShapeMode, O extends FrameOpts<M> = FrameOpts<M>> extends Component<O> {
+  defaultOpts(): O {
     return { shapeFn: BoxShape } as any;
   }
 
-  setOpts(opts_: FrameOpts<M>): FrameOpts<M> {
+  setOpts(opts_: O): O {
     const opts = super.setOpts(opts_);
     const shape = opts.shape = opts.shape ?? new opts.shapeFn!();
     shape.mold(this.elem);
@@ -53,7 +51,7 @@ export class Frame<M = BoxShapeMode> extends Component<FrameOpts<M>> {
   grab(e: Event, ...rest: any[]) {
     super.grab(e, ...rest);
     if (!this.opts.shape || this.opts.transient)
-      this.setOpts({ shape: new this.opts.shapeFn!(this.elem.pos(e)) });
+      this.setOpts({ shape: new this.opts.shapeFn!(this.elem.pos(e)) } as O);
     if (this.opts.transient)
       this.elem.show();
     this.elem.order(-1);
@@ -62,7 +60,7 @@ export class Frame<M = BoxShapeMode> extends Component<FrameOpts<M>> {
   move(deltas: number[], ...rest: any[]) {
     const shape = this.opts.shape?.deform(deltas, this.mode as M);
     super.move(deltas, shape, ...rest); // may modify shape
-    this.setOpts({ shape });
+    this.setOpts({ shape } as O);
   }
 
   free(e: Event, ...rest: any[]) {
