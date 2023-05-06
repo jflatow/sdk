@@ -1,14 +1,16 @@
 import { Elem } from '../sky.ts';
-import { Frame, FrameOpts, BoxShapeMode } from './frame.ts';
+import { BoxFrame, FrameOpts } from './frame.ts';
 import { BBoxSelectable, BBoxSelectorOpts, BBoxSelector } from '../transforms/selector.ts';
 
 export interface SelectionBoxOpts<T extends BBoxSelectable> extends BBoxSelectorOpts<T>, FrameOpts {
   // ...
 }
 
-export class SelectionBox<T extends BBoxSelectable> extends Frame<BoxShapeMode, SelectionBoxOpts<T>> {
+export class SelectionBox<T extends BBoxSelectable> extends BoxFrame<SelectionBoxOpts<T>> {
+  declare selector: BBoxSelector<T>;
+
   get selection() {
-    return this.opts.selection;
+    return this.selector.opts.selection;
   }
 
   defaultOpts() {
@@ -17,6 +19,8 @@ export class SelectionBox<T extends BBoxSelectable> extends Frame<BoxShapeMode, 
 
   init() {
     super.init();
-    this.jack = new BBoxSelector(this.jack, this.opts);
+    this.jack = this.selector = new BBoxSelector(this.jack, this.opts);
   }
+
+  // XXX dotted outline style?
 }

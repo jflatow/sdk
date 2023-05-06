@@ -79,4 +79,8 @@ export class Selection<T extends Selectable> {
       if (member.deselect(this) ?? true)
         this.members.delete(member);
   }
+
+  contains(member: T): boolean {
+    return this.members.has(member);
+  }
 }

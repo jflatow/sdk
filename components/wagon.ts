@@ -4,6 +4,8 @@ import { Component } from '../orb.ts';
 export interface WagonOpts { bbox?: any };
 
 export class Wagon extends Component<WagonOpts> {
+  init() {} // quiet component...
+
   move(delta: number[], ...rest: any[]) {
     const [dx, dy] = delta;
     const cur = this.elem.transformation();

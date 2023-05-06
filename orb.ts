@@ -180,7 +180,7 @@ export class Component<Opts> extends Transform<Opts> {
 
   destroy() {
     // override to add additional standard cleanup
-    this.elem.remove();
+    setTimeout(this.elem.remove.bind(this.elem));
   }
 }
 

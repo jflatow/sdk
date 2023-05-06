@@ -1572,7 +1572,7 @@ class Component extends Transform {
         return this.elem;
     }
     destroy() {
-        this.elem.remove();
+        setTimeout(this.elem.remove.bind(this.elem));
     }
 }
 function combo(a, b) {
@@ -1913,9 +1913,13 @@ class Frame extends Component {
     }
     setOpts(opts_) {
         const opts = super.setOpts(opts_);
-        const shape = opts.shape = opts.shape ?? new opts.shapeFn();
+        const shape = opts.shape ?? new opts.shapeFn();
         shape.mold(this.elem);
         return opts;
+    }
+    init() {
+        super.init();
+        if (this.opts.transient) this.elem.hide();
     }
     grab(e, ...rest) {
         super.grab(e, ...rest);
@@ -1937,6 +1941,8 @@ class Frame extends Component {
         if (this.opts.transient) this.elem.hide();
     }
 }
+class BoxFrame extends Frame {
+}
 class Selection {
     members;
     constructor(){
@@ -1957,12 +1963,18 @@ class Selection {
     removeSelected(...members) {
         for (const member of members)if (member.deselect(this) ?? true) this.members.delete(member);
     }
+    contains(member) {
+        return this.members.has(member);
+    }
 }
 class BBoxSelector extends Transform {
     setOpts(opts_) {
         const opts = super.setOpts(opts_);
         opts.selection = opts.selection ?? new Selection;
         return opts;
+    }
+    grab() {
+        this.opts.selection.select();
     }
     move(deltas, bbox, ...rest) {
         const region = bbox.normalize();
@@ -1978,9 +1990,9 @@ class BBoxSelector extends Transform {
         super.move(deltas, selection, ...rest);
     }
 }
-class SelectionBox extends Frame {
+class SelectionBox extends BoxFrame {
     get selection() {
-        return this.opts.selection;
+        return this.selector.opts.selection;
     }
     defaultOpts() {
         return {
@@ -1990,7 +2002,7 @@ class SelectionBox extends Frame {
     }
     init() {
         super.init();
-        this.jack = new BBoxSelector(this.jack, this.opts);
+        this.jack = this.selector = new BBoxSelector(this.jack, this.opts);
     }
 }
 class Spring extends Component {
@@ -2037,6 +2049,7 @@ class Spring extends Component {
     }
 }
 class Wagon extends Component {
+    init() {}
     move(delta, ...rest) {
         const [dx, dy] = delta;
         const cur = this.elem.transformation();
@@ -2055,9 +2068,10 @@ const mod2 = {
     Button,
     TextButton,
     Text,
-    SelectionBox,
     BoxShape,
     Frame,
+    BoxFrame,
+    SelectionBox,
     Spring,
     Wagon
 };
@@ -2092,7 +2106,6 @@ class Keys extends Transform {
     free(e, ...rest) {
         super.free(e, ...rest);
         this.selected?.free(e, ...rest);
-        this.selected && Keys.do('resetKeyMap', this);
     }
     setOpts(opts_) {
         const opts = super.setOpts(up({

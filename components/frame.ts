@@ -43,9 +43,15 @@ export class Frame<M = BoxShapeMode, O extends FrameOpts<M> = FrameOpts<M>> exte
 
   setOpts(opts_: O): O {
     const opts = super.setOpts(opts_);
-    const shape = opts.shape = opts.shape ?? new opts.shapeFn!();
+    const shape = opts.shape ?? new opts.shapeFn!(); // do not assign default
     shape.mold(this.elem);
     return opts;
+  }
+
+  init() {
+    super.init();
+    if (this.opts.transient)
+      this.elem.hide();
   }
 
   grab(e: Event, ...rest: any[]) {
@@ -69,3 +75,5 @@ export class Frame<M = BoxShapeMode, O extends FrameOpts<M> = FrameOpts<M>> exte
       this.elem.hide();
   }
 }
+
+export class BoxFrame<O extends FrameOpts<BoxShapeMode>> extends Frame<BoxShapeMode, O> {}

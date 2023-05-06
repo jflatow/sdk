@@ -16,6 +16,10 @@ export class BBoxSelector<T extends BBoxSelectable> extends Transform<BBoxSelect
     return opts;
   }
 
+  grab() {
+    this.opts.selection!.select();
+  }
+
   move(deltas: number[], bbox: Box, ...rest: any[]) {
     const region = bbox.normalize();
     const selection = this.opts.selection!;

@@ -329,7 +329,7 @@ class Component extends Transform {
         return this.elem;
     }
     destroy() {
-        this.elem.remove();
+        setTimeout(this.elem.remove.bind(this.elem));
     }
 }
 function combo(a, b) {
