@@ -127,8 +127,9 @@ export class KeyCoder {
   }
 
   static keyChar(event: Event): string {
+    if (event.altKey)
+      return '';
     if (
-      (event.altKey && event.code?.startsWith('Alt')) ||
       (event.ctrlKey && event.code?.startsWith('Control')) ||
       (event.metaKey && event.code?.startsWith('Meta')) ||
       (event.shiftKey && event.code?.startsWith('Shift'))
@@ -149,6 +150,34 @@ export class KeyCoder {
       case 'Escape': return 'ESC';
       case 'Space': return 'SPC';
       case 'Tab': return 'TAB';
+    }
+
+    if (event.key == 'Unidentified' || event.key == 'Dead') {
+      // depends on keyboard but...
+      const shift = event.shiftKey;
+      switch (event.code) {
+        case 'Minus': return shift ? '_' : '-';
+        case 'Equal': return shift ? '+' : '=';
+        case 'Semicolon': return shift ? ':' : ';';
+        case 'Quote': return shift ? '"' : "'";
+        case 'Backquote': return shift ? '~' : '`';
+        case 'Comma': return shift ? '<' : ',';
+        case 'Period': return shift ? '>' : '.';
+        case 'Slash': return shift ? '?' : '/';
+        case 'Backslash': return shift ? '|' : '\\';
+        case 'BracketLeft': return shift ? '{' : '[';
+        case 'BracketRight': return shift ? '}' : ']';
+      }
+
+      if (event.code.startsWith('Digit')) {
+        const code = event.code.replace(/^Digit/, '');
+        return shift ? ')!@#$%^&*('[code] : code;
+      }
+
+      if (event.code.startsWith('Key')) {
+        const code = event.code.replace(/^Key/, '');
+        return shift ? code.toUpperCase() : code.toLowerCase();
+      }
     }
   }
 }
