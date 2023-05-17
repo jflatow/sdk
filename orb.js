@@ -331,6 +331,18 @@ class Component extends Transform {
     destroy() {
         setTimeout(this.elem.remove.bind(this.elem));
     }
+    async activate() {
+        this.elem.addClass('activated');
+    }
+    async deactivate() {
+        this.elem.removeClass('activated');
+    }
+    select() {
+        this.elem.addClass('selected');
+    }
+    deselect() {
+        this.elem.removeClass('selected');
+    }
 }
 function combo(a, b) {
     class c extends Component {

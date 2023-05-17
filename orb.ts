@@ -182,6 +182,22 @@ export class Component<Opts> extends Transform<Opts> {
     // override to add additional standard cleanup
     setTimeout(this.elem.remove.bind(this.elem));
   }
+
+  async activate() {
+    this.elem.addClass('activated');
+  }
+
+  async deactivate() {
+    this.elem.removeClass('activated');
+  }
+
+  select() {
+    this.elem.addClass('selected');
+  }
+
+  deselect() {
+    this.elem.removeClass('selected');
+  }
 }
 
 export function combo<A, B>(a: typeof Component<A>, b: typeof Component<B>): typeof Component<A & B> {

@@ -1421,6 +1421,66 @@ const mod = {
     rgb: rgb,
     RGB: RGB
 };
+class Stack {
+    members;
+    constructor(){
+        this.members = [];
+    }
+    get active() {
+        return this.members[0];
+    }
+    async activate(index) {
+        if (index >= 0 && index < this.members.length) {
+            const [active] = this.members.splice(index, 1);
+            await Promise.all(this.members.map((m, i)=>m.deactivate(this, i)));
+            await active.activate(this, index);
+            this.members.unshift(active);
+            return active;
+        } else {
+            throw new Error(`non-existent index: ${index}`);
+        }
+    }
+    async activateMember(member) {
+        return await this.activate(this.members.findIndex((m)=>m === member));
+    }
+    async addMember(member) {
+        if (!this.members.includes(member)) this.members.push(member);
+        if (this.active === member) await member.activate(this);
+    }
+    async removeMember(member) {
+        const i = this.members.findIndex((m)=>m === member);
+        if (this.active === member) await member.deactivate(this);
+        if (i >= 0) this.members.splice(i, 1);
+    }
+}
+class Selection {
+    members;
+    constructor(){
+        this.members = new Set;
+    }
+    get selected() {
+        return [
+            ...this.members
+        ];
+    }
+    select(...members) {
+        this.removeSelected(...this.members);
+        this.addSelected(...members);
+    }
+    addSelected(...members) {
+        for (const member of members)if (member.select(this) ?? true) this.members.add(member);
+    }
+    removeSelected(...members) {
+        for (const member of members)if (member.deselect(this) ?? true) this.members.delete(member);
+    }
+    contains(member) {
+        return this.members.has(member);
+    }
+}
+const mod1 = {
+    Stack: Stack,
+    Selection: Selection
+};
 function broadcast(desc) {
     const cast = {};
     for (const [k, os] of Object.entries(desc))cast[k] = (...args)=>os.forEach((o, i)=>o[k]?.(...args, i));
@@ -1573,6 +1633,18 @@ class Component extends Transform {
     }
     destroy() {
         setTimeout(this.elem.remove.bind(this.elem));
+    }
+    async activate() {
+        this.elem.addClass('activated');
+    }
+    async deactivate() {
+        this.elem.removeClass('activated');
+    }
+    select() {
+        this.elem.addClass('selected');
+    }
+    deselect() {
+        this.elem.removeClass('selected');
     }
 }
 function combo(a, b) {
@@ -1801,7 +1873,7 @@ function dbltap(elem, jack_, opts_ = {}) {
         if (opts.prevent) e.preventDefault();
     });
 }
-const mod1 = {
+const mod2 = {
     keypress,
     pinch,
     press,
@@ -1943,30 +2015,6 @@ class Frame extends Component {
 }
 class BoxFrame extends Frame {
 }
-class Selection {
-    members;
-    constructor(){
-        this.members = new Set;
-    }
-    get selected() {
-        return [
-            ...this.members
-        ];
-    }
-    select(...members) {
-        this.removeSelected(...this.members);
-        this.addSelected(...members);
-    }
-    addSelected(...members) {
-        for (const member of members)if (member.select(this) ?? true) this.members.add(member);
-    }
-    removeSelected(...members) {
-        for (const member of members)if (member.deselect(this) ?? true) this.members.delete(member);
-    }
-    contains(member) {
-        return this.members.has(member);
-    }
-}
 class BBoxSelector extends Transform {
     setOpts(opts_) {
         const opts = super.setOpts(opts_);
@@ -2064,7 +2112,7 @@ class Wagon extends Component {
         this.elem.transform(cur);
     }
 }
-const mod2 = {
+const mod3 = {
     Button,
     TextButton,
     Text,
@@ -2191,7 +2239,8 @@ class KeyCoder {
         return modifiers;
     }
     static keyChar(event) {
-        if (event.altKey && event.code?.startsWith('Alt') || event.ctrlKey && event.code?.startsWith('Control') || event.metaKey && event.code?.startsWith('Meta') || event.shiftKey && event.code?.startsWith('Shift')) return '';
+        if (event.altKey) return '';
+        if (event.ctrlKey && event.code?.startsWith('Control') || event.metaKey && event.code?.startsWith('Meta') || event.shiftKey && event.code?.startsWith('Shift')) return '';
         return event.key || '';
     }
     static specialChar(event) {
@@ -2216,6 +2265,41 @@ class KeyCoder {
                 return 'SPC';
             case 'Tab':
                 return 'TAB';
+        }
+        if (event.key == 'Unidentified' || event.key == 'Dead') {
+            const shift = event.shiftKey;
+            switch(event.code){
+                case 'Minus':
+                    return shift ? '_' : '-';
+                case 'Equal':
+                    return shift ? '+' : '=';
+                case 'Semicolon':
+                    return shift ? ':' : ';';
+                case 'Quote':
+                    return shift ? '"' : "'";
+                case 'Backquote':
+                    return shift ? '~' : '`';
+                case 'Comma':
+                    return shift ? '<' : ',';
+                case 'Period':
+                    return shift ? '>' : '.';
+                case 'Slash':
+                    return shift ? '?' : '/';
+                case 'Backslash':
+                    return shift ? '|' : '\\';
+                case 'BracketLeft':
+                    return shift ? '{' : '[';
+                case 'BracketRight':
+                    return shift ? '}' : ']';
+            }
+            if (event.code.startsWith('Digit')) {
+                const code = event.code.replace(/^Digit/, '');
+                return shift ? ')!@#$%^&*('[code] : code;
+            }
+            if (event.code.startsWith('Key')) {
+                const code = event.code.replace(/^Key/, '');
+                return shift ? code.toUpperCase() : code.toLowerCase();
+            }
         }
     }
 }
@@ -2257,7 +2341,7 @@ class Loop extends Transform {
         super.move(deltas, cur, ...rest);
     }
 }
-const mod3 = {
+const mod4 = {
     BBoxSelector,
     Amp,
     Keys,
@@ -2265,6 +2349,7 @@ const mod3 = {
     Loop
 };
 export { mod as Sky };
-export { mod1 as Gestures };
-export { mod2 as Components };
-export { mod3 as Transforms };
+export { mod1 as Mutex };
+export { mod2 as Gestures };
+export { mod3 as Components };
+export { mod4 as Transforms };
