@@ -1616,9 +1616,6 @@ class Component extends Transform {
     static sprout(root, _opts) {
         return root.div();
     }
-    static styles() {
-        return {};
-    }
     init() {
         this.elem.addClass([
             'component',
@@ -2139,21 +2136,22 @@ class Keys extends Transform {
     grab(e, ...rest) {
         super.grab(e, ...rest);
         const input = KeyCoder.characterize(e);
-        const reset = !this.selected && Keys.do('captureInput', this, input);
-        if (this.selected?.grab(e, ...rest)) return Keys.do('resetKeyMap', this, input), true;
+        const reset = !this.operative && Keys.do('captureInput', this, input);
+        if (this.operative?.grab(e, ...rest)) return Keys.do('resetKeyMap', this, input), true;
         return reset;
     }
     move(deltas, e, ...rest) {
         super.move(deltas, e, ...rest);
-        this.selected?.move(deltas, e, ...rest);
+        this.operative?.move(deltas, e, ...rest);
     }
     send(e, ...rest) {
         super.move(e, ...rest);
-        this.selected?.send(e, ...rest);
+        this.operative?.send(e, ...rest);
     }
     free(e, ...rest) {
         super.free(e, ...rest);
-        this.selected?.free(e, ...rest);
+        this.operative?.free(e, ...rest);
+        if (this.grip == 0 && this.operative) Keys.do('resetKeyMap', this);
     }
     setOpts(opts_) {
         const opts = super.setOpts(up({
@@ -2162,16 +2160,18 @@ class Keys extends Transform {
         Keys.do('resetKeyMap', this);
         return opts;
     }
+    async callNext(next, input) {
+        if (await next.call(this, input.chars, input.event)) input.event.preventDefault?.();
+    }
     captureInput(input) {
         if (input.special) {
             const next = this.curKeyMap[input.special] || this.curKeyMap.default;
             if (next instanceof Function) {
-                if (input.event && this.curKeyMap[input.special]) input.event.preventDefault?.();
                 Keys.do('resetKeyMap', this, input);
-                next.call(this, input.chars, input.event);
+                Keys.do('callNext', this, next, input);
                 return true;
             } else if (next instanceof Orb) {
-                this.selected = next;
+                this.operative = next;
             } else if (next) {
                 Keys.do('stepKeyMap', this, next, input);
             } else {
@@ -2184,12 +2184,11 @@ class Keys extends Transform {
                 const __char = input.chars[i];
                 const next = this.curKeyMap[__char] || this.curKeyMap.default;
                 if (next instanceof Function) {
-                    if (input.event && this.curKeyMap[__char]) input.event.preventDefault?.();
                     Keys.do('resetKeyMap', this, input);
-                    next.call(this, input.chars.slice(i), input.event);
+                    Keys.do('callNext', this, next, input);
                     return true;
                 } else if (next instanceof Orb) {
-                    this.selected = next;
+                    this.operative = next;
                 } else if (next) {
                     Keys.do('stepKeyMap', this, next, input);
                 } else {
@@ -2207,7 +2206,7 @@ class Keys extends Transform {
     }
     resetKeyMap(input = {}) {
         this.curKeyMap = this.opts.map;
-        this.selected = undefined;
+        this.operative = undefined;
     }
     stepKeyMap(next, input) {
         this.curKeyMap = next;

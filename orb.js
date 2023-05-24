@@ -313,9 +313,6 @@ class Component extends Transform {
     static sprout(root, _opts) {
         return root.div();
     }
-    static styles() {
-        return {};
-    }
     init() {
         this.elem.addClass([
             'component',

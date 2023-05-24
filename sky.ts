@@ -399,7 +399,7 @@ export class Elem {
     return this;
   }
 
-  css(k) {
+  css(k?) {
     const css = window.getComputedStyle(this.node)
     return k ? css[k] : css;
   }

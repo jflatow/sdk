@@ -3,34 +3,34 @@ import { KeyMap, Orb, Transform } from '../orb.ts';
 
 export interface KeysOpts { map?: KeyMap };
 
-// XXX re-think selected here? possibly (just) rename?
-//  also relates to both opt and state question
 export class Keys extends Transform<KeysOpts> {
   declare curKeyMap: KeyMap; // NB: avoid JS re-initializing undefined
-  declare selected?: Orb; // XXX selections general interface... prob just this
+  declare operative?: Orb;
 
   grab(e: Event, ...rest: any[]): boolean {
     super.grab(e, ...rest);
     const input = KeyCoder.characterize(e);
-    const reset = !this.selected && Keys.do('captureInput', this, input);
-    if (this.selected?.grab(e, ...rest) as any)
+    const reset = !this.operative && Keys.do('captureInput', this, input);
+    if (this.operative?.grab(e, ...rest) as any)
       return Keys.do('resetKeyMap', this, input), true;
     return reset as boolean;
   }
 
   move(deltas: number[], e: Event, ...rest: any[]) {
     super.move(deltas, e, ...rest);
-    this.selected?.move(deltas, e, ...rest);
+    this.operative?.move(deltas, e, ...rest);
   }
 
   send(e: Event, ...rest: any[]) {
     super.move(e, ...rest);
-    this.selected?.send(e, ...rest);
+    this.operative?.send(e, ...rest);
   }
 
   free(e: Event, ...rest: any[]) {
     super.free(e, ...rest);
-    this.selected?.free(e, ...rest);
+    this.operative?.free(e, ...rest);
+    if (this.grip == 0 && this.operative)
+      Keys.do('resetKeyMap', this);
   }
 
   setOpts(opts_: KeysOpts): KeysOpts {
@@ -39,17 +39,20 @@ export class Keys extends Transform<KeysOpts> {
     return opts;
   }
 
+  async callNext(next: (chars?: string, event?: any) => Promise<boolean>, input: Input) {
+    if (await next.call(this, input.chars, input.event))
+      input.event.preventDefault?.();
+  }
+
   captureInput(input: Input): boolean {
     if (input.special) {
       const next = this.curKeyMap[input.special] || this.curKeyMap.default;
       if (next instanceof Function) { // note: different than Orb.from a fn...
-        if (input.event && this.curKeyMap[input.special])
-          input.event.preventDefault?.();
         Keys.do('resetKeyMap', this, input);
-        next.call(this, input.chars, input.event);
+        Keys.do('callNext', this, next, input);
         return true;
       } else if (next instanceof Orb) {
-        this.selected = next;
+        this.operative = next;
       } else if (next) {
         Keys.do('stepKeyMap', this, next, input);
       } else {
@@ -62,13 +65,11 @@ export class Keys extends Transform<KeysOpts> {
         const char = input.chars[i];
         const next = this.curKeyMap[char] || this.curKeyMap.default;
         if (next instanceof Function) {
-          if (input.event && this.curKeyMap[char])
-            input.event.preventDefault?.();
           Keys.do('resetKeyMap', this, input);
-          next.call(this, input.chars.slice(i), input.event);
+          Keys.do('callNext', this, next, input);
           return true;
         } else if (next instanceof Orb) {
-          this.selected = next;
+          this.operative = next;
         } else if (next) {
           Keys.do('stepKeyMap', this, next, input);
         } else {
@@ -87,7 +88,7 @@ export class Keys extends Transform<KeysOpts> {
 
   resetKeyMap(input: Input = {}) {
     this.curKeyMap = this.opts.map!;
-    this.selected = undefined;
+    this.operative = undefined;
   }
 
   stepKeyMap(next: KeyMap, input: Input) {

@@ -94,6 +94,9 @@ Deno.test('keys default proxy', async () => {
   keys1.grab({ ctrlKey: true, key: 'f' });
   assertEquals(aPressed, 1);
   assertEquals(keys1.grip, 2);
+  keys1.free();
+  keys1.free();
+  assertEquals(keys1.grip, 0);
 
   const map2 = {
     default: Orb.proxy(() => keys1)
@@ -103,14 +106,11 @@ Deno.test('keys default proxy', async () => {
   keys2.grab({ ctrlKey: true, key: 'x' });
   keys2.grab({ ctrlKey: true, key: 'f' });
   assertEquals(keys2.grip, 2);
-  assertEquals(keys1.grip, 4);
+  assertEquals(keys1.grip, 2);
   assertEquals(aPressed, 2);
 
   keys2.free();
   keys2.free();
   assertEquals(keys2.grip, 0);
-
-  keys1.free();
-  keys1.free();
   assertEquals(keys1.grip, 0);
 });
