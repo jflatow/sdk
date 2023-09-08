@@ -1013,6 +1013,8 @@ export class Box {
     this.h = dfn(dfn(d.h, d.height), e ? Inf : 0)
   }
 
+  update(obj) { return up(this, obj) }
+
   get width() { return this.w }
   get height() { return this.h }
   get left() { return this.x }

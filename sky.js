@@ -1030,6 +1030,9 @@ class Box {
         this.w = dfn(dfn(d.w, d.width), e ? Inf : 0);
         this.h = dfn(dfn(d.h, d.height), e ? Inf : 0);
     }
+    update(obj) {
+        return up(this, obj);
+    }
     get width() {
         return this.w;
     }
