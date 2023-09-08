@@ -1421,6 +1421,21 @@ const mod = {
     rgb: rgb,
     RGB: RGB
 };
+function throttle(fun, every, T) {
+    return (...args)=>{
+        clearTimeout(T);
+        T = setTimeout(()=>fun(...args), every);
+    };
+}
+async function timer(ms, val) {
+    return new Promise((okay)=>setTimeout(()=>okay(val), ms));
+}
+export { throttle as throttle };
+export { timer as timer };
+const mod1 = {
+    throttle: throttle,
+    timer: timer
+};
 class Stack {
     members;
     constructor(){
@@ -1477,7 +1492,7 @@ class Selection {
         return this.members.has(member);
     }
 }
-const mod1 = {
+const mod2 = {
     Stack: Stack,
     Selection: Selection
 };
@@ -1870,7 +1885,7 @@ function dbltap(elem, jack_, opts_ = {}) {
         if (opts.prevent) e.preventDefault();
     });
 }
-const mod2 = {
+const mod3 = {
     keypress,
     pinch,
     press,
@@ -2109,7 +2124,7 @@ class Wagon extends Component {
         this.elem.transform(cur);
     }
 }
-const mod3 = {
+const mod4 = {
     Button,
     TextButton,
     Text,
@@ -2161,7 +2176,11 @@ class Keys extends Transform {
         return opts;
     }
     async callNext(next, input) {
-        if (await next.call(this, input.chars, input.event)) input.event.preventDefault?.();
+        try {
+            if (await next.call(this, input.chars, input.event)) input.event.preventDefault?.();
+        } catch (e) {
+            console.error('handler failed', e);
+        }
     }
     captureInput(input) {
         if (input.special) {
@@ -2340,7 +2359,7 @@ class Loop extends Transform {
         super.move(deltas, cur, ...rest);
     }
 }
-const mod4 = {
+const mod5 = {
     BBoxSelector,
     Amp,
     Keys,
@@ -2348,7 +2367,8 @@ const mod4 = {
     Loop
 };
 export { mod as Sky };
-export { mod1 as Mutex };
-export { mod2 as Gestures };
-export { mod3 as Components };
-export { mod4 as Transforms };
+export { mod1 as Sun };
+export { mod2 as Mutex };
+export { mod3 as Gestures };
+export { mod4 as Components };
+export { mod5 as Transforms };

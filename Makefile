@@ -1,7 +1,7 @@
 .PHONY: build test \
 	examples examples-open examples-serve
 
-build: sdk.js sky.js orb.js
+build: sdk.js sky.js sun.js orb.js
 
 %.js: %.ts
 	deno bundle $^ -- $@
