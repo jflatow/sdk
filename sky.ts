@@ -21,7 +21,7 @@ export const trig = {
   rad: function (a) { return Math.PI / 180 * a },
   sin: function (a) { return Math.sin(trig.rad(a)) },
   cos: function (a) { return Math.cos(trig.rad(a)) },
-  cut: function (x) { return util.clip(x, -359.999, 359.999) },
+  cut: function (x) { return clip(x, -359.999, 359.999) },
   polar: function (r, a) { return [r * trig.cos(a), r * trig.sin(a)] }
 }
 

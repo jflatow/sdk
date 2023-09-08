@@ -33,7 +33,7 @@ const trig = {
         return Math.cos(trig.rad(a));
     },
     cut: function(x) {
-        return util.clip(x, -359.999, 359.999);
+        return clip(x, -359.999, 359.999);
     },
     polar: function(r, a) {
         return [
