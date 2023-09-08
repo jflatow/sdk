@@ -40,8 +40,12 @@ export class Keys extends Transform<KeysOpts> {
   }
 
   async callNext(next: (chars?: string, event?: any) => Promise<boolean>, input: Input) {
-    if (await next.call(this, input.chars, input.event))
-      input.event.preventDefault?.();
+    try {
+      if (await next.call(this, input.chars, input.event))
+        input.event.preventDefault?.();
+    } catch (e) {
+      console.error('handler failed', e);
+    }
   }
 
   captureInput(input: Input): boolean {
