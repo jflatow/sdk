@@ -13,10 +13,17 @@ export async function timer<V>(ms: number, val?: V): Promise<V | undefined> {
   return new Promise((okay) => setTimeout(() => okay(val), ms));
 }
 
-export type Num = bigint | number;
+export type Numeric = bigint | number;
 
-export function int(x: string): number {
-  return parseInt(x, 10);
+export class Num {
+  static int(x: string): number {
+    return parseInt(x, 10);
+  }
+
+  static mod<T extends Numeric>(x: T, y: T): T {
+    const r = x % y;
+    return r < 0 ? (r as any + y as any) : r;
+  }
 }
 
 export function max<T>(x?: T, y?: T): T | undefined {
@@ -25,11 +32,6 @@ export function max<T>(x?: T, y?: T): T | undefined {
 
 export function min<T>(x?: T, y?: T): T | undefined {
   return x! < y! ? x : y;
-}
-
-export function mod<T extends Num>(x: T, y: T): T {
-  const r = x % y;
-  return r < 0 ? (r as any + y as any) : r;
 }
 
 export function nil<T>(x?: T): T | undefined {
@@ -173,8 +175,8 @@ export class Time extends Date {
     const sep = opt?.sep ?? 'T', dsep = opt?.dsep ?? '-', tsep = opt?.tsep ?? ':';
     const utc = opt?.utc || stamp[stamp.length - 1] == 'Z';
     const dtp = stamp.split(sep);
-    const datep = dtp[0] ? dtp[0].split(dsep).map(int) : [0, 0, 0];
-    const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(int) : [0, 0, 0];
+    const datep = dtp[0] ? dtp[0].split(dsep).map(Num.int) : [0, 0, 0];
+    const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Num.int) : [0, 0, 0];
     if (utc)
       return new Date(Date.UTC(datep[0], datep[1] - 1, datep[2], timep[0], timep[1], timep[2]));
     return new Date(datep[0], datep[1] - 1, datep[2], timep[0], timep[1], timep[2]);

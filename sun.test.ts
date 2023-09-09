@@ -16,8 +16,10 @@ Deno.test('throttle', async () => {
   assertEquals(x, 12);
 });
 
-Deno.test('math', async () => {
-  assertEquals(Sun.int('016'), 16);
+Deno.test('num, min, max', async () => {
+  assertEquals(Sun.Num.int('016'), 16);
+  assertEquals(Sun.Num.mod(25, 5), 0);
+  assertEquals(Sun.Num.mod(-25, 6), 5);
   assertEquals(Sun.min(1, null), null);
   assertEquals(Sun.max(1, null), 1);
   assertEquals(Sun.min(null, 1), null);

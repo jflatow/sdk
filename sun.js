@@ -11,18 +11,20 @@ function throttle(fun, every, T) {
 async function timer(ms, val) {
     return new Promise((okay)=>setTimeout(()=>okay(val), ms));
 }
-function __int(x) {
-    return parseInt(x, 10);
+class Num {
+    static int(x) {
+        return parseInt(x, 10);
+    }
+    static mod(x, y) {
+        const r = x % y;
+        return r < 0 ? r + y : r;
+    }
 }
 function max(x, y) {
     return x > y ? x : y;
 }
 function min(x, y) {
     return x < y ? x : y;
-}
-function mod(x, y) {
-    const r = x % y;
-    return r < 0 ? r + y : r;
 }
 function nil(x) {
     if (x instanceof Array) return [];
@@ -142,12 +144,12 @@ class Time extends Date {
         const sep = opt?.sep ?? 'T', dsep = opt?.dsep ?? '-', tsep = opt?.tsep ?? ':';
         const utc = opt?.utc || stamp[stamp.length - 1] == 'Z';
         const dtp = stamp.split(sep);
-        const datep = dtp[0] ? dtp[0].split(dsep).map(__int) : [
+        const datep = dtp[0] ? dtp[0].split(dsep).map(Num.int) : [
             0,
             0,
             0
         ];
-        const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(__int) : [
+        const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Num.int) : [
             0,
             0,
             0
@@ -203,10 +205,9 @@ class Time extends Date {
 }
 export { throttle as throttle };
 export { timer as timer };
-export { __int as int };
+export { Num as Num };
 export { max as max };
 export { min as min };
-export { mod as mod };
 export { nil as nil };
 export { pad as pad };
 export { List as List };
