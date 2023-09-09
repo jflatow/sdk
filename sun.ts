@@ -13,8 +13,34 @@ export async function timer<V>(ms: number, val?: V): Promise<V | undefined> {
   return new Promise((okay) => setTimeout(() => okay(val), ms));
 }
 
+export type Num = bigint | number;
+
 export function int(x: string): number {
   return parseInt(x, 10);
+}
+
+export function max<T>(x?: T, y?: T): T | undefined {
+  return x! > y! ? x : y;
+}
+
+export function min<T>(x?: T, y?: T): T | undefined {
+  return x! < y! ? x : y;
+}
+
+export function mod<T extends Num>(x: T, y: T): T {
+  const r = x % y;
+  return r < 0 ? (r as any + y as any) : r;
+}
+
+export function nil<T>(x?: T): T | undefined {
+  if (x instanceof Array)
+    return [] as T;
+  if (x instanceof Object)
+    return {} as T;
+  if (typeof(x) == 'string')
+    return '' as T;
+  if (typeof(x) == 'number')
+    return 0 as T;
 }
 
 export interface PadSpec {

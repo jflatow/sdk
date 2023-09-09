@@ -16,6 +16,28 @@ Deno.test('throttle', async () => {
   assertEquals(x, 12);
 });
 
+Deno.test('math', async () => {
+  assertEquals(Sun.int('016'), 16);
+  assertEquals(Sun.min(1, null), null);
+  assertEquals(Sun.max(1, null), 1);
+  assertEquals(Sun.min(null, 1), null);
+  assertEquals(Sun.max(1, null), 1);
+  assertEquals(Sun.min(1), undefined);
+  assertEquals(Sun.max(1), undefined);
+  assertEquals(Sun.min(1, undefined), Sun.max(1, undefined));
+  assertEquals(Sun.min(undefined, 1), Sun.max(undefined, 1));
+  assertEquals(Sun.min('ab', 'bc'), 'ab');
+  assertEquals(Sun.max('ab', 'bc'), 'bc');
+});
+
+Deno.test('nil', async () => {
+  assertEquals(Sun.nil([1, 2]), []);
+  assertEquals(Sun.nil({ a: 1 }), {} as any);
+  assertEquals(Sun.nil('ok'), '');
+  assertEquals(Sun.nil(1), 0);
+  assertEquals(Sun.nil(true), undefined);
+});
+
 Deno.test('pad', async () => {
   assertEquals(Sun.pad(5), '05');
   assertEquals(Sun.pad('ok', { width: 12, pad: 'x' }), 'xxxxxxxxxxok');

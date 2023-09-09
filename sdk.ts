@@ -6,5 +6,4 @@ export * as Components from './components.ts';
 export * as Transforms from './transforms.ts';
 
 export * from './sky.ts';
-export * from './sun.ts';
 export * from './orb.ts';

@@ -14,6 +14,22 @@ async function timer(ms, val) {
 function __int(x) {
     return parseInt(x, 10);
 }
+function max(x, y) {
+    return x > y ? x : y;
+}
+function min(x, y) {
+    return x < y ? x : y;
+}
+function mod(x, y) {
+    const r = x % y;
+    return r < 0 ? r + y : r;
+}
+function nil(x) {
+    if (x instanceof Array) return [];
+    if (x instanceof Object) return {};
+    if (typeof x == 'string') return '';
+    if (typeof x == 'number') return 0;
+}
 function pad(s, opt) {
     return s.toString().padStart(opt?.width ?? 2, opt?.pad ?? '0');
 }
@@ -188,6 +204,10 @@ class Time extends Date {
 export { throttle as throttle };
 export { timer as timer };
 export { __int as int };
+export { max as max };
+export { min as min };
+export { mod as mod };
+export { nil as nil };
 export { pad as pad };
 export { List as List };
 export { Sec as Sec, Min as Min, Hour as Hour, Day as Day, Week as Week };

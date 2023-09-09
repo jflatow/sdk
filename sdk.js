@@ -33,7 +33,7 @@ const trig = {
         return Math.cos(trig.rad(a));
     },
     cut: function(x) {
-        return util.clip(x, -359.999, 359.999);
+        return clip(x, -359.999, 359.999);
     },
     polar: function(r, a) {
         return [
@@ -1030,6 +1030,9 @@ class Box {
         this.w = dfn(dfn(d.w, d.width), e ? Inf : 0);
         this.h = dfn(dfn(d.h, d.height), e ? Inf : 0);
     }
+    update(obj) {
+        return up(this, obj);
+    }
     get width() {
         return this.w;
     }
@@ -1421,21 +1424,10 @@ const mod = {
     rgb: rgb,
     RGB: RGB
 };
-function throttle(fun, every, T) {
-    return (...args)=>{
-        clearTimeout(T);
-        T = setTimeout(()=>fun(...args), every);
-    };
+function mod1(x, y) {
+    const r = x % y;
+    return r < 0 ? r + y : r;
 }
-async function timer(ms, val) {
-    return new Promise((okay)=>setTimeout(()=>okay(val), ms));
-}
-export { throttle as throttle };
-export { timer as timer };
-const mod1 = {
-    throttle: throttle,
-    timer: timer
-};
 class Stack {
     members;
     constructor(){
