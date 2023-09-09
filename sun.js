@@ -11,7 +11,7 @@ function throttle(fun, every, T) {
 async function timer(ms, val) {
     return new Promise((okay)=>setTimeout(()=>okay(val), ms));
 }
-class Num {
+class Uni {
     static int(x) {
         return parseInt(x, 10);
     }
@@ -19,18 +19,18 @@ class Num {
         const r = x % y;
         return r < 0 ? r + y : r;
     }
-}
-function max(x, y) {
-    return x > y ? x : y;
-}
-function min(x, y) {
-    return x < y ? x : y;
-}
-function nil(x) {
-    if (x instanceof Array) return [];
-    if (x instanceof Object) return {};
-    if (typeof x == 'string') return '';
-    if (typeof x == 'number') return 0;
+    static max(x, y) {
+        return x > y ? x : y;
+    }
+    static min(x, y) {
+        return x < y ? x : y;
+    }
+    static nil(x) {
+        if (x instanceof Array) return [];
+        if (x instanceof Object) return {};
+        if (typeof x == 'string') return '';
+        if (typeof x == 'number') return 0;
+    }
 }
 function pad(s, opt) {
     return s.toString().padStart(opt?.width ?? 2, opt?.pad ?? '0');
@@ -144,12 +144,12 @@ class Time extends Date {
         const sep = opt?.sep ?? 'T', dsep = opt?.dsep ?? '-', tsep = opt?.tsep ?? ':';
         const utc = opt?.utc || stamp[stamp.length - 1] == 'Z';
         const dtp = stamp.split(sep);
-        const datep = dtp[0] ? dtp[0].split(dsep).map(Num.int) : [
+        const datep = dtp[0] ? dtp[0].split(dsep).map(Uni.int) : [
             0,
             0,
             0
         ];
-        const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Num.int) : [
+        const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Uni.int) : [
             0,
             0,
             0
@@ -182,7 +182,7 @@ class Time extends Date {
         return timep.join(opt?.tsep ?? ':') + (opt?.utc ? 'Z' : '');
     }
     static stamp(t, opt) {
-        return Time.datestamp(t, opt) + (opt?.sep ?? ' ') + Time.timestamp(t, opt);
+        return Time.datestamp(t, opt) + (opt?.sep ?? 'T') + Time.timestamp(t, opt);
     }
     static fromGregorian(s) {
         return new Date((s - 62167219200) * 1000);
@@ -205,10 +205,7 @@ class Time extends Date {
 }
 export { throttle as throttle };
 export { timer as timer };
-export { Num as Num };
-export { max as max };
-export { min as min };
-export { nil as nil };
+export { Uni as Uni };
 export { pad as pad };
 export { List as List };
 export { Sec as Sec, Min as Min, Hour as Hour, Day as Day, Week as Week };

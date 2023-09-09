@@ -16,28 +16,30 @@ Deno.test('throttle', async () => {
   assertEquals(x, 12);
 });
 
-Deno.test('num, min, max', async () => {
-  assertEquals(Sun.Num.int('016'), 16);
-  assertEquals(Sun.Num.mod(25, 5), 0);
-  assertEquals(Sun.Num.mod(-25, 6), 5);
-  assertEquals(Sun.min(1, null), null);
-  assertEquals(Sun.max(1, null), 1);
-  assertEquals(Sun.min(null, 1), null);
-  assertEquals(Sun.max(1, null), 1);
-  assertEquals(Sun.min(1), undefined);
-  assertEquals(Sun.max(1), undefined);
-  assertEquals(Sun.min(1, undefined), Sun.max(1, undefined));
-  assertEquals(Sun.min(undefined, 1), Sun.max(undefined, 1));
-  assertEquals(Sun.min('ab', 'bc'), 'ab');
-  assertEquals(Sun.max('ab', 'bc'), 'bc');
+Deno.test('uni', async () => {
+  const { Uni } = Sun;
+  assertEquals(Uni.int('016'), 16);
+  assertEquals(Uni.mod(25, 5), 0);
+  assertEquals(Uni.mod(-25, 6), 5);
+  assertEquals(Uni.min(1, null), null);
+  assertEquals(Uni.max(1, null), 1);
+  assertEquals(Uni.min(null, 1), null);
+  assertEquals(Uni.max(1, null), 1);
+  assertEquals(Uni.min(1), undefined);
+  assertEquals(Uni.max(1), undefined);
+  assertEquals(Uni.min(1, undefined), Uni.max(1, undefined));
+  assertEquals(Uni.min(undefined, 1), Uni.max(undefined, 1));
+  assertEquals(Uni.min('ab', 'bc'), 'ab');
+  assertEquals(Uni.max('ab', 'bc'), 'bc');
 });
 
 Deno.test('nil', async () => {
-  assertEquals(Sun.nil([1, 2]), []);
-  assertEquals(Sun.nil({ a: 1 }), {} as any);
-  assertEquals(Sun.nil('ok'), '');
-  assertEquals(Sun.nil(1), 0);
-  assertEquals(Sun.nil(true), undefined);
+  const { Uni } = Sun;
+  assertEquals(Uni.nil([1, 2]), []);
+  assertEquals(Uni.nil({ a: 1 }), {} as any);
+  assertEquals(Uni.nil('ok'), '');
+  assertEquals(Uni.nil(1), 0);
+  assertEquals(Uni.nil(true), undefined);
 });
 
 Deno.test('pad', async () => {
@@ -56,7 +58,8 @@ Deno.test('time', async () => {
   const T = Sun.Time;
   const t = new Date(2023, 0, 7, 23, 27, 19);
   const u = new Date(2023, 0, 14, 23, 27, 19);
-  assertEquals(T.stamp(t), '2023-01-07 23:27:19');
+  assertEquals(T.stamp(t), '2023-01-07T23:27:19');
+  assertEquals(T.read(T.stamp(t)), t);
   assertEquals(T.pass({ w: 1 }, t), u);
   assertEquals(T.fold(L.append, [] as Date[], { start: t, stop: u }), [
     t,

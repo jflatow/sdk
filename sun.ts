@@ -13,36 +13,36 @@ export async function timer<V>(ms: number, val?: V): Promise<V | undefined> {
   return new Promise((okay) => setTimeout(() => okay(val), ms));
 }
 
-export type Numeric = bigint | number;
+export type Num = bigint | number;
 
-export class Num {
+export class Uni {
   static int(x: string): number {
     return parseInt(x, 10);
   }
 
-  static mod<T extends Numeric>(x: T, y: T): T {
+  static mod<T extends Num>(x: T, y: T): T {
     const r = x % y;
     return r < 0 ? (r as any + y as any) : r;
   }
-}
 
-export function max<T>(x?: T, y?: T): T | undefined {
-  return x! > y! ? x : y;
-}
+  static max<T>(x?: T, y?: T): T | undefined {
+    return x! > y! ? x : y;
+  }
 
-export function min<T>(x?: T, y?: T): T | undefined {
-  return x! < y! ? x : y;
-}
+  static min<T>(x?: T, y?: T): T | undefined {
+    return x! < y! ? x : y;
+  }
 
-export function nil<T>(x?: T): T | undefined {
-  if (x instanceof Array)
-    return [] as T;
-  if (x instanceof Object)
-    return {} as T;
-  if (typeof(x) == 'string')
-    return '' as T;
-  if (typeof(x) == 'number')
-    return 0 as T;
+  static nil<T>(x?: T): T | undefined {
+    if (x instanceof Array)
+      return [] as T;
+    if (x instanceof Object)
+      return {} as T;
+    if (typeof(x) == 'string')
+      return '' as T;
+    if (typeof(x) == 'number')
+      return 0 as T;
+  }
 }
 
 export interface PadSpec {
@@ -175,8 +175,8 @@ export class Time extends Date {
     const sep = opt?.sep ?? 'T', dsep = opt?.dsep ?? '-', tsep = opt?.tsep ?? ':';
     const utc = opt?.utc || stamp[stamp.length - 1] == 'Z';
     const dtp = stamp.split(sep);
-    const datep = dtp[0] ? dtp[0].split(dsep).map(Num.int) : [0, 0, 0];
-    const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Num.int) : [0, 0, 0];
+    const datep = dtp[0] ? dtp[0].split(dsep).map(Uni.int) : [0, 0, 0];
+    const timep = dtp[1] ? dtp[1].substring(0, 8).split(':').map(Uni.int) : [0, 0, 0];
     if (utc)
       return new Date(Date.UTC(datep[0], datep[1] - 1, datep[2], timep[0], timep[1], timep[2]));
     return new Date(datep[0], datep[1] - 1, datep[2], timep[0], timep[1], timep[2]);
@@ -197,7 +197,7 @@ export class Time extends Date {
   }
 
   static stamp(t: Date, opt?: TimeFormatOpt): string {
-    return Time.datestamp(t, opt) + (opt?.sep ?? ' ') + Time.timestamp(t, opt);
+    return Time.datestamp(t, opt) + (opt?.sep ?? 'T') + Time.timestamp(t, opt);
   }
 
   static fromGregorian(s: Second): Date {
