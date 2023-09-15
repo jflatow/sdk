@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <title>New Stuff</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <style>
+      * {
+        user-select: none;
+        box-sizing: border-box;
+      }
+
+      #paper {
+        width: 100%;
+        height: 100%;
+      }
+
+      .pressed {
+        color: green;
+      }
+
+      .Frame {
+        border: 1px solid grey;
+      }
+
+      .SelectionBox {
+        border: 1px dotted; grey;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="paper"></div>
+    <script type="module">
+      import { assert } from './assert.js';
+      import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
+      const { Amp, Keys, Loop } = Transforms;
+      const {
+        Balloon,
+        Button,
+        Dolly,
+        Spring,
+        Text,
+        TextButton,
+        Wagon,
+        Zoom,
+      } = Components;
+
+      const paper = Sky.$('#paper').attrs({ tabindex: 0 });
+      const text1 = Text.quick(paper, { text: "Scale or move me" });
+
+      const viewBox = Sky.box(0, 0, 100, 100);
+      const svg = paper.svg({ width: 200, height: 100 }).attrs({ viewBox });
+      const circle = svg.circleX(viewBox.scale(0.3));
+
+      Gestures.pinch(
+        text1.elem.style({ 'transform-origin': 'top left' }),
+        new Amp(
+          new Balloon(text1.elem, null, { mbox: Sky.Box.ltrb(0.5, 0.5, 10, 10) }),
+          { kx: 0.25, ky: 0.25 }),
+      );
+
+      Gestures.swipe(text1.elem, new Wagon(text1.elem));
+
+      Gestures.pinch(svg, new Spring(svg, new Zoom(svg)));
+      Gestures.scroll(svg, new Spring(svg, new Dolly(svg)));
+
+      Gestures.pinch(paper); // disable default
+      window.Sky = Sky;
+    </script>
+  </body>
+</html>

@@ -169,14 +169,15 @@ export const P: any = up(path, {
 
 export interface Point { x?: number, y?: number };
 
+export type Numeric = number | string;
 export const SVGTransform = window.SVGTransform;
 export interface Transformation {
-  matrix?: number[];
-  translate?: number[];
-  scale?: number[];
-  rotate?: number[];
-  skewX?: number;
-  skewY?: number;
+  matrix?: Numeric[];
+  translate?: Numeric[];
+  scale?: Numeric[];
+  rotate?: Numeric[];
+  skewX?: Numeric;
+  skewY?: Numeric;
 }
 
 export function $(q) { return new Elem(document).$(q) }
@@ -1011,6 +1012,10 @@ export class Box {
     this.y = dfn(dfn(d.y, d.top), e ? -Inf : 0)
     this.w = dfn(dfn(d.w, d.width), e ? Inf : 0)
     this.h = dfn(dfn(d.h, d.height), e ? Inf : 0)
+  }
+
+  static ltrb(l = 0, t = 0, r = l, b = t) {
+    return new this({x: l, y: t, w: r - l, h: b - t})
   }
 
   update(obj) { return up(this, obj) }

@@ -32,7 +32,16 @@
       import { assert } from './assert.js';
       import { Sky, Events, Gestures, Transforms, Components } from '../sdk.js';
       const { Amp, BBoxSelector, Keys, Loop } = Transforms;
-      const { Button, Frame, SelectionBox, Spring, Text, TextButton, Wagon } = Components;
+      const {
+        Balloon,
+        Button,
+        Frame,
+        SelectionBox,
+        Spring,
+        Text,
+        TextButton,
+        Wagon,
+      } = Components;
 
       const paper = Sky.$('#paper').attrs({ tabindex: 0 });
       const text1 = new Text(paper.div());

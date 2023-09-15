@@ -11,6 +11,7 @@ test:
 
 examples: examples-open examples-serve
 
+examples-open: PORT = 8011
 examples-open:
 	open 'http://localhost:$(PORT)/examples/'
 
