@@ -1843,7 +1843,7 @@ class Component extends Transform {
         return new this(this.sprout(root, opts), undefined, opts);
     }
     static sprout(root, _opts) {
-        return root.div();
+        return root.node.namespaceURI.endsWith('svg') ? root.g() : root.div();
     }
     init() {
         this.elem.addClass([

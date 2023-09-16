@@ -150,7 +150,7 @@ export class Component<Opts> extends Transform<Opts> {
   }
 
   static sprout<Opts>(root: Elem, _opts?: Opts): Elem {
-    return root.div();
+    return root.node.namespaceURI.endsWith('svg') ? root.g() : root.div();
   }
 
   init() {
