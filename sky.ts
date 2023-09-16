@@ -558,7 +558,7 @@ export class Elem {
     return this.div({class: 'rect'}).xywh(x, y, w, h, u)
   }
 
-  text(text) {
+  text(text?) {
     return this.span({class: 'text'}).txt(text)
   }
 
@@ -882,7 +882,7 @@ export class SVGElem extends Elem {
     return this.child('rect', {x: x, y: y, width: w, height: h})
   }
 
-  text(text) {
+  text(text?) {
     return this.child('text', {}, {textContent: text})
   }
 
