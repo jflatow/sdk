@@ -157,7 +157,7 @@ export class Component<Opts> extends Transform<Opts> {
     // override to add implicit gestures, etc. on construction
     //  remember to call super, typically
     //  also a good place to add children
-    this.elem.addClass(['component', this.constructor.name]); // XXX
+    this.elem.addClass(['component', this.constructor.name]);
   }
 
   render(): Elem {

@@ -2314,6 +2314,7 @@ class Spring extends Component {
     dx;
     dy;
     anim;
+    init() {}
     move(delta, ...rest) {
         const { lock , kx , ky , lx , ly , tx , ty , ...fns } = up({
             kx: 8,

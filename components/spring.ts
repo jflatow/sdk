@@ -17,6 +17,8 @@ export class Spring extends Component<SpringOpts> {
   dy?: number;
   anim?: any;
 
+  init() {} // quiet component...
+
   move(delta: number[], ...rest: any[]) {
     const {
       lock,
