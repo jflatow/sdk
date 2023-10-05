@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Text, TextOpts } from './text.ts';
 import { Component, Event } from '../orb.ts';
 import { press } from '../gestures.ts';

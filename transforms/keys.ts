@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Event, up } from '../sky.ts';
 import { KeyMap, Orb, Transform } from '../orb.ts';
 

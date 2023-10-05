@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Sky, Orb, Gestures, Components, Transforms } from './sdk.ts';
 
 const { keypress, pinch, press, scroll, swipe, tap } = Gestures;

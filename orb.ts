@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Box, Elem, Event, abs, up } from './sky.ts';
 
 export type { Event };

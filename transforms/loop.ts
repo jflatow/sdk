@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Box, Transformation, fnt, noop } from '../sky.ts';
 import { Transform } from '../orb.ts';
 

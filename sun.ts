@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 export type Fn = (...args: any[]) => void;
 export type Fun = (...args: any[]) => any;
 export type Timeout = number;

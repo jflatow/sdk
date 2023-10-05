@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Box, Event } from '../sky.ts';
 import { Transform, Representable } from '../orb.ts';
 import { Selectable, Selection } from '../mutex.ts';

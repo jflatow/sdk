@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Elem } from '../sky.ts';
 import { BoxFrame, FrameOpts } from './frame.ts';
 import { BBoxSelectable, BBoxSelectorOpts, BBoxSelector } from '../transforms/selector.ts';

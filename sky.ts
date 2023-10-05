@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // @ts-nocheck
 export const abs = Math.abs, log = Math.log, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 export const add = (p, d) => isFinite(d) ? p + d : d;

@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 export * as Sky from './sky.ts';
 export * as Sun from './sun.ts';
 export * as Mutex from './mutex.ts';

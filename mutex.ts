@@ -1,3 +1,5 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
 
 export interface Activatable {
   activate(...args: any[]): Promise<void>;

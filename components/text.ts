@@ -1,3 +1,6 @@
+// Copyright 2013-present Jared Flatow
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { Component } from '../orb.ts';
 
 export interface TextOpts { text?: string };
