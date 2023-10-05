@@ -93,7 +93,7 @@ const P = up(path, {
         r = dfn(r, t);
         b = dfn(b, t);
         l = dfn(l, r);
-        const { x , y , w , h  } = box;
+        const { x, y, w, h } = box;
         const ix = x + l, iy = y + t, iw = w - l - r, ih = h - t - b;
         return P.line(x, y, x + w, y, open) + P('v', h) + P('h', -w) + P('v', -h) + P.line(ix, iy, ix, iy + ih) + P('h', iw) + P('v', -ih) + P('h', -iw);
     },

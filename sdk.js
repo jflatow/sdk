@@ -108,7 +108,7 @@ const P = up(path, {
         r = dfn(r, t);
         b = dfn(b, t);
         l = dfn(l, r);
-        const { x , y , w , h  } = box;
+        const { x, y, w, h } = box;
         const ix = x + l, iy = y + t, iw = w - l - r, ih = h - t - b;
         return P.line(x, y, x + w, y, open) + P('v', h) + P('h', -w) + P('v', -h) + P.line(ix, iy, ix, iy + ih) + P('h', iw) + P('v', -ih) + P('h', -iw);
     },
@@ -557,24 +557,24 @@ class Elem {
         }).embox(box, u);
     }
     iconX(box, href, u) {
-        const { x , y , w , h  } = box || this.bbox();
+        const { x, y, w, h } = box || this.bbox();
         return this.icon(href, w, h, u).place(x, y, u);
     }
     imageX(box, href, u) {
-        const { x , y , w , h  } = box || this.bbox();
+        const { x, y, w, h } = box || this.bbox();
         return this.image(x, y, w, h, href, u);
     }
     circleX(box, p, big, u) {
         const o = big ? max : min;
-        const { midX , midY , w , h  } = box || this.bbox();
+        const { midX, midY, w, h } = box || this.bbox();
         return this.circle(midX, midY, dfn(p, 1) * o(w, h) / 2, u);
     }
     ellipseX(box, px, py, u) {
-        const { midX , midY , w , h  } = box || this.bbox();
+        const { midX, midY, w, h } = box || this.bbox();
         return this.ellipse(midX, midY, dfn(px, 1) * w / 2, dfn(py, 1) * h / 2, u);
     }
     rectX(box, u) {
-        const { x , y , w , h  } = box || this.bbox();
+        const { x, y, w, h } = box || this.bbox();
         return this.rect(x, y, w, h, u);
     }
     textX(box, text, ax, ay, u) {
@@ -657,11 +657,11 @@ class Elem {
         return this.parent().xywh.call(this, x, y, w, h, u);
     }
     align(box, ax, ay, u) {
-        const { x , y  } = new Box().align(box, ax, ay);
+        const { x, y } = new Box().align(box, ax, ay);
         return this.place(x, y, u);
     }
     embox(box, u) {
-        const { x , y , w , h  } = box;
+        const { x, y, w, h } = box;
         return this.cover(x, y, w, h, u);
     }
     anchor(i, j) {
@@ -1163,7 +1163,7 @@ class Box {
         });
     }
     normalize() {
-        const { x , y , w , h  } = this;
+        const { x, y, w, h } = this;
         return this.copy({
             x: w < 0 ? x + w : x,
             y: h < 0 ? y + h : y,
@@ -1235,7 +1235,7 @@ class Box {
     }
     copy(o_) {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
-        const { x , y , w , h  } = this;
+        const { x, y, w, h } = this;
         return new this.constructor({
             x: dfn(o.x, x),
             y: dfn(o.y, y),
@@ -1245,16 +1245,16 @@ class Box {
     }
     equals(o_) {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height);
-        const { x , y , w , h  } = this;
+        const { x, y, w, h } = this;
         return x == dfn(o.x, 0) && y == dfn(o.y, 0) && w == dfn(ow, 0) && h == dfn(oh, 0);
     }
     overlaps(o_) {
         const o = o_ || {}, ow = dfn(o.w, o.width), oh = dfn(o.h, o.height), ox = dfn(o.x, 0), oy = dfn(o.y, 0);
-        const { x , y , w , h  } = this;
+        const { x, y, w, h } = this;
         return ox <= x + w && ox + ow >= x && oy <= y + h && oy + oh >= y;
     }
     toString() {
-        const { x , y , w , h  } = this;
+        const { x, y, w, h } = this;
         return x + ',' + y + ',' + w + ',' + h;
     }
     static solve(opts) {
@@ -2316,7 +2316,7 @@ class Spring extends Component {
     anim;
     init() {}
     move(delta, ...rest) {
-        const { lock , kx , ky , lx , ly , tx , ty , ...fns } = up({
+        const { lock, kx, ky, lx, ly, tx, ty, ...fns } = up({
             kx: 8,
             ky: 8,
             lx: 1,

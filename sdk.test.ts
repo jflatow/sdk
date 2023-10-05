@@ -13,6 +13,7 @@ Deno.test('sub component', async () => {
   // note that defaultOpts must be on the prototype, not just instances
   class MyButtonT extends TextButton { defaultOpts() { return ({ text: '⮑' }) } }
   const elem = {
+    node: { namespaceURI: '' },
     div: () => elem,
     txt: () => null,
     on: () => null,
