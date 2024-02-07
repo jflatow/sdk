@@ -274,7 +274,7 @@ class Elem {
         return acc;
     }
     fold(fun, acc) {
-        for(let c = this.node.firstElementChild, i = 0; c; c = c.nextSibling)acc = fun(acc, c, i++);
+        for(let c = this.node.firstElementChild, i = 0; c; c = c.nextElementSibling)acc = fun(acc, c, i++);
         return acc;
     }
     nth(n) {

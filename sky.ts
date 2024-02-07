@@ -272,7 +272,7 @@ export class Elem {
   }
 
   fold(fun, acc) {
-    for (let c = this.node.firstElementChild, i = 0; c; c = c.nextSibling)
+    for (let c = this.node.firstElementChild, i = 0; c; c = c.nextElementSibling)
       acc = fun(acc, c, i++)
     return acc;
   }
