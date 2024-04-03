@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>JSON</title>
+  </head>
+  <body>
+    <script type="module">
+      import { assertEquals } from './assert.js';
+      import { Sky } from '../sdk.js';
+
+      const body = Sky.$(document.body);
+      const a = body.child('form');
+      const i = a.child('input');
+      i.load('abc');
+      assertEquals(i.dump(), 'abc');
+      assertEquals(a.dump(), 'abc');
+
+      const n = body.child('form', { name: 'named' });
+      const j = n.child('input');
+      j.load('xyz');
+      assertEquals(j.dump(), 'xyz');
+      assertEquals(n.dump(), 'xyz');
+
+      const p = body.child('form');
+      const k = p.child('input', { name: 'named' });
+      k.load({ named: 'ghi' });
+      // XXX actually figure out how we want this to properly work
+      //  not very consistent currently
+      assertEquals(k.dump(), { named: 'ghi' });
+      assertEquals(p.dump(), { named: 'ghi' });
+
+      assertEquals(body.all('form').map(e => e.node), [a.node, n.node, p.node]); // not really checking 'equals'...
+      window.Sky = Sky;
+    </script>
+  </body>
+</html>

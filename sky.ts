@@ -265,6 +265,10 @@ export class Elem {
     return this.node.ownerDocument ? new this.constructor(this.node.ownerDocument) : this;
   }
 
+  all(sel) {
+    return this.each(sel, (n, a) => [...a, wrap(n)], []);
+  }
+
   each(sel, fun, acc?) {
     for (let q = this.node.querySelectorAll(sel), i = 0; i < q.length; i++)
       acc = fun(q[i], acc, i, q)
@@ -729,7 +733,7 @@ export class Elem {
         n.value = json || ''
       else if (n.childElementCount)
         this.fold((_, c) => {
-          elem(c).load(c.name && json ? json[c.name] : json)
+          elem(c).load(json)
         })
     }
     return this;
@@ -762,11 +766,11 @@ export class Elem {
     else
       p = n.value;
     if (p !== undefined)
-      return n.name ? set(json, n.name, p) : p;
+      return n.name ? set(json || {}, n.name, p) : p;
     if (n.childElementCount)
-      this.fold((o, c) => {
+      return this.fold((o, c) => {
         return elem(c).dump(o)
-      }, n.name ? pre(json = json || {}, n.name, {}) : json)
+      }, n.name ? pre(json || {}, n.name, {}) : json)
     return json;
   }
 

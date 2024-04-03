@@ -52,6 +52,10 @@ export class Stack<T extends Activatable> {
     if (i >= 0)
       this.members.splice(i, 1);
   }
+
+  findMemberByClass(c: { new (...args: any[]): T }): T | undefined {
+    return this.members.find(m => m instanceof c) as T;
+  }
 }
 
 export class Selection<T extends Selectable> {

@@ -21,6 +21,7 @@ Deno.test('stack', async () => {
   await stack.addMember(layer);
   assertEquals(stack.members, [layer]);
   assertEquals(stack.active, layer);
+  assertEquals(stack.findMemberByClass(Layer), layer);
   await stack.removeMember(layer);
   assertEquals(stack.members, []);
   assertEquals(stack.active, undefined);
