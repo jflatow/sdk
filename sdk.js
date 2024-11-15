@@ -1,7 +1,3 @@
-// deno-fmt-ignore-file
-// deno-lint-ignore-file
-// This code was bundled using `deno bundle` and it's not recommended to edit it manually
-
 const abs = Math.abs, log = Math.log, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2), Inf = Infinity;
 const add = (p, d)=>isFinite(d) ? p + d : d;
 const dfn = (x, d)=>isNaN(x) ? d : x;
@@ -22,6 +18,7 @@ const map = (a, f)=>[].concat(a || []).map(f);
 const up = Object.assign;
 const noop = ()=>{};
 const randInt = (m, M)=>Math.round((M - m) * Math.random()) + m;
+const window = globalThis;
 const trig = {
     rad: function(a) {
         return Math.PI / 180 * a;
@@ -1383,6 +1380,7 @@ export { map as map };
 export { up as up };
 export { noop as noop };
 export { randInt as randInt };
+export { window as window };
 export { trig as trig };
 export { units as units };
 export { Q as Q };
@@ -1421,6 +1419,7 @@ const mod = {
     up: up,
     noop: noop,
     randInt: randInt,
+    window: window,
     trig: trig,
     units: units,
     Q: Q,

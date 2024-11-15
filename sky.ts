@@ -19,6 +19,7 @@ export const up = Object.assign;
 export const noop = () => {};
 
 export const randInt = (m, M) => Math.round((M - m) * Math.random()) + m;
+export const window = globalThis;
 
 export const trig = {
   rad: function (a) { return Math.PI / 180 * a },

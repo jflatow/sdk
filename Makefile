@@ -4,7 +4,7 @@
 build: sdk.js sky.js sun.js orb.js
 
 %.js: %.ts
-	deno bundle $^ -- $@
+	deno run -A https://deno.land/x/bundy/cli.ts $^ > $@
 
 test:
 	deno test --quiet
@@ -17,4 +17,4 @@ examples-open:
 
 examples-serve: PORT = 8011
 examples-serve: build
-	deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts -p $(PORT)
+	deno run -A https://deno.land/std/http/file_server.ts -p $(PORT)

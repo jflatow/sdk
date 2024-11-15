@@ -1,12 +1,9 @@
-// deno-fmt-ignore-file
-// deno-lint-ignore-file
-// This code was bundled using `deno bundle` and it's not recommended to edit it manually
-
 const abs = Math.abs, min = Math.min, max = Math.max, Rt2 = Math.sqrt(2);
 const dfn = (x, d)=>isNaN(x) ? d : x;
 const clip = (x, m, M)=>min(max(x, m), M);
 const each = (a, f)=>a && a.map ? a.map(f) : f(a, 0);
 const up = Object.assign;
+const window = globalThis;
 const trig = {
     rad: function(a) {
         return Math.PI / 180 * a;
